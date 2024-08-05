@@ -80,7 +80,7 @@ def printenergy(dyn, start_time=None):  # store a reference to atoms in the defi
     if start_time is None:
         elapsed_time = 0
     else:
-        elapsed_time = time.time() - start_time
+        elapsed_time = time.perf_counter() - start_time
     forces_var = np.var(a.calc.results["forces_comm"], axis=0)
     print(
         "%.1fs: Energy per atom: Epot = %.3feV  Ekin = %.3feV (T=%3.0fK)  "  # pylint: disable=C0209
@@ -179,7 +179,7 @@ def run(args: argparse.Namespace) -> None:
         friction=args.friction,
     )
 
-    dyn.attach(printenergy, interval=args.nsave, dyn=dyn, start_time=time.time())
+    dyn.attach(printenergy, interval=args.nsave, dyn=dyn, start_time=time.perf_counter())
     dyn.attach(save_config, interval=args.nsave, dyn=dyn, fname=args.output)
     dyn.attach(
         stop_error, interval=args.ncheckerror, dyn=dyn, threshold=args.error_threshold

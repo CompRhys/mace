@@ -315,7 +315,7 @@ def take_step(
     max_grad_norm: Optional[float],
     device: torch.device,
 ) -> Tuple[float, Dict[str, Any]]:
-    start_time = time.time()
+    start_time = time.perf_counter()
     batch = batch.to(device)
     optimizer.zero_grad(set_to_none=True)
     batch_dict = batch.to_dict()
@@ -337,7 +337,7 @@ def take_step(
 
     loss_dict = {
         "loss": to_numpy(loss),
-        "time": time.time() - start_time,
+        "time": time.perf_counter() - start_time,
     }
 
     return loss, loss_dict
@@ -355,7 +355,7 @@ def evaluate(
 
     metrics = MACELoss(loss_fn=loss_fn).to(device)
 
-    start_time = time.time()
+    start_time = time.perf_counter()
     for batch in data_loader:
         batch = batch.to(device)
         batch_dict = batch.to_dict()
@@ -369,7 +369,7 @@ def evaluate(
         avg_loss, aux = metrics(batch, output)
 
     avg_loss, aux = metrics.compute()
-    aux["time"] = time.time() - start_time
+    aux["time"] = time.perf_counter() - start_time
     metrics.reset()
 
     for param in model.parameters():
