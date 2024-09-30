@@ -4,6 +4,8 @@
 # This program is distributed under the MIT License (see MIT.md)
 ###########################################################################################
 
+import logging
+
 import ase
 import numpy as np
 import torch
@@ -150,8 +152,13 @@ class ZBLBasis(torch.nn.Module):
 
     p: torch.Tensor
 
-    def __init__(self, p=6, trainable=False):
+    def __init__(self, p=6, trainable=False, **kwargs):
         super().__init__()
+        if "r_max" in kwargs:
+            logging.warning(
+                "r_max is deprecated. r_max is determined from the covalent radii."
+            )
+
         # Pre-calculate the p coefficients for the ZBL potential
         self.register_buffer(
             "c",
