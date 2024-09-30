@@ -119,13 +119,13 @@ class PolynomialCutoff(torch.nn.Module):
 
     def __init__(self, r_max: float, p=6):
         super().__init__()
-        self.register_buffer("p", torch.tensor(p, dtype=torch.get_default_dtype()))
+        self.register_buffer("p", torch.tensor(p, dtype=torch.int))
         self.register_buffer(
             "r_max", torch.tensor(r_max, dtype=torch.get_default_dtype())
         )
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        return self.calculate_envelope(x, self.r_max, self.p)
+        return self.calculate_envelope(x, self.r_max, self.p.to(torch.int))
 
     @staticmethod
     def calculate_envelope(x: torch.Tensor, r_max: float, p: int) -> torch.Tensor:
@@ -159,7 +159,7 @@ class ZBLBasis(torch.nn.Module):
                 [0.1818, 0.5099, 0.2802, 0.02817], dtype=torch.get_default_dtype()
             ),
         )
-        self.register_buffer("p", torch.tensor(p, dtype=torch.get_default_dtype()))
+        self.register_buffer("p", torch.tensor(p, dtype=torch.int))
         self.register_buffer(
             "covalent_radii",
             torch.tensor(
