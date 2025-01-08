@@ -5,6 +5,7 @@
 [![License](https://img.shields.io/badge/License-MIT%202.0-blue.svg)](https://opensource.org/licenses/mit)
 [![GitHub issues](https://img.shields.io/github/issues/ACEsuit/mace.svg)](https://GitHub.com/ACEsuit/mace/issues/)
 [![Documentation Status](https://readthedocs.org/projects/mace/badge/)](https://mace-docs.readthedocs.io/en/latest/)
+[![DOI](https://zenodo.org/badge/505964914.svg)](https://doi.org/10.5281/zenodo.14103332)
 
 ## Table of contents
 
@@ -13,13 +14,13 @@
   - [About MACE](#about-mace)
   - [Documentation](#documentation)
   - [Installation](#installation)
-    - [pip installation](#pip-installation)
-    - [conda installation](#conda-installation)
-    - [pip installation from source](#pip-installation-from-source)
+    - [pip installation](#installation-from-pypi)
+    - [pip installation from source](#installation-from-source)
   - [Usage](#usage)
     - [Training](#training)
     - [Evaluation](#evaluation)
-  - [Tutorial](#tutorial)
+  - [Tutorials](#tutorials)
+  - [CUDA acceleration with cuEquivariance](#cuda-acceleration-with-cuequivariance)
   - [Weights and Biases for experiment tracking](#weights-and-biases-for-experiment-tracking)
   - [Pretrained Foundation Models](#pretrained-foundation-models)
     - [MACE-MP: Materials Project Force Fields](#mace-mp-materials-project-force-fields)
@@ -27,6 +28,7 @@
     - [MACE-OFF: Transferable Organic Force Fields](#mace-off-transferable-organic-force-fields)
       - [Example usage in ASE](#example-usage-in-ase-1)
     - [Finetuning foundation models](#finetuning-foundation-models)
+  - [Caching](#caching)
   - [Development](#development)
   - [References](#references)
   - [Contact](#contact)
@@ -53,12 +55,12 @@ A partial documentation is available at: https://mace-docs.readthedocs.io
 ### 1. Requirements:
 
 - Python >= 3.7  (for openMM, use Python = 3.9)
-- [PyTorch](https://pytorch.org/) >= 1.12 **(training with float64 is not supported with PyTorch 2.1 but is supported with 2.2 and later)**
+- [PyTorch](https://pytorch.org/) >= 1.12 **(training with float64 is not supported with PyTorch 2.1 but is supported with 2.2 and later, Pytorch 2.4.1 is not supported)**
 
 **Make sure to install PyTorch.** Please refer to the [official PyTorch installation](https://pytorch.org/get-started/locally/) for the installation instructions. Select the appropriate options for your system.
 
-### 2a. Installation from PyPI
-This is the recommended way to install MACE. 
+### Installation from PyPI
+This is the recommended way to install MACE.
 
 ```sh
 pip install --upgrade pip
@@ -67,7 +69,7 @@ pip install mace-torch
 **Note:** The homonymous package on [PyPI](https://pypi.org/project/MACE/) has nothing to do with this one.
 
 
-### 2b. Installation from source
+### Installation from source
 
 
 ```sh
@@ -108,7 +110,7 @@ mace_run_train \
 
 To give a specific validation set, use the argument `--valid_file`. To set a larger batch size for evaluating the validation set, specify `--valid_batch_size`.
 
-To control the model's size, you need to change `--hidden_irreps`. For most applications, the recommended default model size is `--hidden_irreps='256x0e'` (meaning 256 invariant messages) or `--hidden_irreps='128x0e + 128x1o'`. If the model is not accurate enough, you can include higher order features, e.g., `128x0e + 128x1o + 128x2e`, or increase the number of channels to `256`. It is also possible to specify the model using the     `--num_channels=128` and `--max_L=1`keys. 
+To control the model's size, you need to change `--hidden_irreps`. For most applications, the recommended default model size is `--hidden_irreps='256x0e'` (meaning 256 invariant messages) or `--hidden_irreps='128x0e + 128x1o'`. If the model is not accurate enough, you can include higher order features, e.g., `128x0e + 128x1o + 128x2e`, or increase the number of channels to `256`. It is also possible to specify the model using the     `--num_channels=128` and `--max_L=1`keys.
 
 It is usually preferred to add the isolated atoms to the training set, rather than reading in their energies through the command line like in the example above. To label them in the training set, set `config_type=IsolatedAtom` in their info fields. If you prefer not to use or do not know the energies of the isolated atoms, you can use the option `--E0s="average"` which estimates the atomic energies using least squares regression.
 
@@ -162,11 +164,18 @@ mace_eval_configs \
     --output="./your_output.xyz"
 ```
 
-## Tutorial
+## Tutorials
 
 You can run our [Colab tutorial](https://colab.research.google.com/drive/1D6EtMUjQPey_GkuxUAbPgld6_9ibIa-V?authuser=1#scrollTo=Z10787RE1N8T) to quickly get started with MACE.
 
-We also have a more detailed user and developer tutorial at https://github.com/ilyes319/mace-tutorials
+We also have a more detailed Colab tutorials on:
+ - [Introduction to MACE training and evaluation](https://colab.research.google.com/drive/1ZrTuTvavXiCxTFyjBV4GqlARxgFwYAtX)
+ - [Introduction to MACE active learning and fine-tuning](https://colab.research.google.com/drive/1oCSVfMhWrqHTeHbKgUSQN9hTKxLzoNyb)
+ - [MACE theory and code (advanced)](https://colab.research.google.com/drive/1AlfjQETV_jZ0JQnV5M3FGwAM2SGCl2aU)
+
+## CUDA acceleration with cuEquivariance
+
+MACE supports CUDA acceleration with the cuEquivariance library. To install the library and use the acceleration, see our documentation at https://mace-docs.readthedocs.io/en/latest/guide/cuda_acceleration.html.
 
 ## On-line data loading for large datasets
 
@@ -287,10 +296,15 @@ mace_run_train \
   --amsgrad \
   --default_dtype="float32" \
   --device=cuda \
-  --seed=3 
+  --seed=3
 ```
-Other options are "medium" and "large", or the path to a foundation model. 
+Other options are "medium" and "large", or the path to a foundation model.
 If you want to finetune another model, the model will be loaded from the path provided `--foundation_model=$path_model`, but you will need to provide the full set of hyperparameters (hidden irreps, r_max, etc.) matching the model.
+
+## Caching
+
+By default automatically downloaded models, like mace_mp, mace_off and data for fine tuning, end up in `~/.cache/mace`. The path can be changed by using
+the environment variable XDG_CACHE_HOME. When set, the new cache path expands to $XDG_CACHE_HOME/.cache/mace
 
 ## Development
 
@@ -312,7 +326,7 @@ We are happy to accept pull requests under an [MIT license](https://choosealicen
 
 If you use this code, please cite our papers:
 
-```text
+```bibtex
 @inproceedings{Batatia2022mace,
   title={{MACE}: Higher Order Equivariant Message Passing Neural Networks for Fast and Accurate Force Fields},
   author={Ilyes Batatia and David Peter Kovacs and Gregor N. C. Simm and Christoph Ortner and Gabor Csanyi},
