@@ -3,13 +3,12 @@ import torch
 
 from mace.modules.radial import AgnesiTransform, ZBLBasis
 
-
 @pytest.fixture
 def zbl_basis():
     return ZBLBasis(p=6, trainable=False)
 
 
-def test_zbl_basis_initialization(zbl_basis):
+def test_zbl_basis_initialization(zbl_basis: ZBLBasis):
     assert zbl_basis.p == torch.tensor(6.0)
     assert torch.allclose(zbl_basis.c, torch.tensor([0.1818, 0.5099, 0.2802, 0.02817]))
 
@@ -19,18 +18,18 @@ def test_zbl_basis_initialization(zbl_basis):
     assert not zbl_basis.a_prefactor.requires_grad
 
 
-def test_trainable_zbl_basis_initialization(zbl_basis):
-    zbl_basis = ZBLBasis(p=6, trainable=True)
-    assert zbl_basis.p == torch.tensor(6.0)
-    assert torch.allclose(zbl_basis.c, torch.tensor([0.1818, 0.5099, 0.2802, 0.02817]))
+def test_trainable_zbl_basis_initialization():
+    zbl_basis_trainable = ZBLBasis(p=6, trainable=True)
+    assert zbl_basis_trainable.p == torch.tensor(6.0)
+    assert torch.allclose(zbl_basis_trainable.c, torch.tensor([0.1818, 0.5099, 0.2802, 0.02817]))
 
-    assert zbl_basis.a_exp == torch.tensor(0.300)
-    assert zbl_basis.a_prefactor == torch.tensor(0.4543)
-    assert zbl_basis.a_exp.requires_grad
-    assert zbl_basis.a_prefactor.requires_grad
+    assert zbl_basis_trainable.a_exp == torch.tensor(0.300)
+    assert zbl_basis_trainable.a_prefactor == torch.tensor(0.4543)
+    assert zbl_basis_trainable.a_exp.requires_grad
+    assert zbl_basis_trainable.a_prefactor.requires_grad
 
 
-def test_forward(zbl_basis):
+def test_forward(zbl_basis: ZBLBasis):
     x = torch.tensor([1.0, 1.0, 2.0]).unsqueeze(-1)  # [n_edges]
     node_attrs = torch.tensor(
         [[1, 0], [0, 1]]
@@ -63,18 +62,17 @@ def test_agnesi_transform_initialization(agnesi: AgnesiTransform):
 
 
 def test_trainable_agnesi_transform_initialization():
-    agnesi = AgnesiTransform(trainable=True)
+    agnesi_trainable = AgnesiTransform(trainable=True)
 
-    assert agnesi.q.item() == pytest.approx(0.9183, rel=1e-4)
-    assert agnesi.p.item() == pytest.approx(4.5791, rel=1e-4)
-    assert agnesi.a.item() == pytest.approx(1.0805, rel=1e-4)
-    assert agnesi.a.requires_grad
-    assert agnesi.q.requires_grad
-    assert agnesi.p.requires_grad
+    assert agnesi_trainable.q.item() == pytest.approx(0.9183, rel=1e-4)
+    assert agnesi_trainable.p.item() == pytest.approx(4.5791, rel=1e-4)
+    assert agnesi_trainable.a.item() == pytest.approx(1.0805, rel=1e-4)
+    assert agnesi_trainable.a.requires_grad
+    assert agnesi_trainable.q.requires_grad
+    assert agnesi_trainable.p.requires_grad
 
 
-def test_agnesi_transform_forward():
-    agnesi = AgnesiTransform()
+def test_agnesi_transform_forward(agnesi: AgnesiTransform):
     x = torch.tensor([1.0, 2.0, 3.0], dtype=torch.get_default_dtype()).unsqueeze(-1)
     node_attrs = torch.tensor([[0, 1], [1, 0], [0, 1]], dtype=torch.get_default_dtype())
     edge_index = torch.tensor([[0, 1, 2], [1, 2, 0]])
@@ -89,7 +87,3 @@ def test_agnesi_transform_forward():
         ).unsqueeze(-1),
         rtol=1e-2,
     )
-
-
-if __name__ == "__main__":
-    pytest.main([__file__])
