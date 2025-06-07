@@ -115,10 +115,10 @@ def _config2():
 @pytest.fixture(name="atomic_data")
 def _atomic_data(config1, config2, table):
     atomic_data1 = AtomicData.from_config(
-        config1, z_table=table, cutoff=3.0, heads=["DFT", "MP2"]
+        config1, z_table=table, cutoff=3.0, heads=["DFT", "MP2"], dtype=test_dtype
     )
     atomic_data2 = AtomicData.from_config(
-        config2, z_table=table, cutoff=3.0, heads=["DFT", "MP2"]
+        config2, z_table=table, cutoff=3.0, heads=["DFT", "MP2"], dtype=test_dtype
     )
     return [atomic_data1, atomic_data2]
 
@@ -141,16 +141,12 @@ def _atomic_energies():
     }
     return dict_to_array(atomic_energies_dict, ["DFT", "MP2"])
 
-
-@pytest.fixture(autouse=True)
-def _set_torch_default_dtype():
-    torch.set_default_dtype(torch.float64)
-
+test_dtype = torch.float64
 
 def test_weighted_loss(config, table):
-    loss1 = WeightedEnergyForcesLoss(energy_weight=1, forces_weight=10)
-    loss2 = WeightedHuberEnergyForcesStressLoss(energy_weight=1, forces_weight=10)
-    data = AtomicData.from_config(config, z_table=table, cutoff=3.0)
+    loss1 = WeightedEnergyForcesLoss(energy_weight=1, forces_weight=10, dtype=test_dtype)
+    loss2 = WeightedHuberEnergyForcesStressLoss(energy_weight=1, forces_weight=10, dtype=test_dtype)
+    data = AtomicData.from_config(config, z_table=table, cutoff=3.0, dtype=test_dtype)
     data_loader = torch_geometric.dataloader.DataLoader(
         dataset=[data, data],
         batch_size=2,
@@ -175,11 +171,11 @@ def test_symmetric_contraction():
         irreps_out=o3.Irreps("16x0e + 16x1o"),
         correlation=3,
         num_elements=2,
-    )
+    ).to(test_dtype)
     torch.manual_seed(123)
-    features = torch.randn(30, 16, 9)
+    features = torch.randn(30, 16, 9, dtype=test_dtype)
     one_hots = torch.nn.functional.one_hot(torch.arange(0, 30) % 2).to(
-        torch.get_default_dtype()
+        test_dtype
     )
     out = operation(features, one_hots)
     assert out.shape == (30, 64)
@@ -187,22 +183,22 @@ def test_symmetric_contraction():
 
 
 def test_bessel_basis():
-    d = torch.linspace(start=0.5, end=5.5, steps=10)
-    bessel_basis = BesselBasis(r_max=6.0, num_basis=5)
+    d = torch.linspace(start=0.5, end=5.5, steps=10, dtype=test_dtype)
+    bessel_basis = BesselBasis(r_max=6.0, num_basis=5).to(test_dtype)
     output = bessel_basis(d.unsqueeze(-1))
     assert output.shape == (10, 5)
 
 
 def test_polynomial_cutoff():
-    d = torch.linspace(start=0.5, end=5.5, steps=10)
-    cutoff_fn = PolynomialCutoff(r_max=5.0)
+    d = torch.linspace(start=0.5, end=5.5, steps=10, dtype=test_dtype)
+    cutoff_fn = PolynomialCutoff(r_max=5.0).to(test_dtype)
     output = cutoff_fn(d)
     assert output.shape == (10,)
 
 
 def test_atomic_energies(config, table):
-    energies_block = AtomicEnergiesBlock(atomic_energies=np.array([1.0, 3.0]))
-    data = AtomicData.from_config(config, z_table=table, cutoff=3.0)
+    energies_block = AtomicEnergiesBlock(atomic_energies=np.array([1.0, 3.0])).to(test_dtype)
+    data = AtomicData.from_config(config, z_table=table, cutoff=3.0, dtype=test_dtype)
     data_loader = torch_geometric.dataloader.DataLoader(
         dataset=[data, data],
         batch_size=2,
@@ -218,11 +214,11 @@ def test_atomic_energies(config, table):
 
 def test_atomic_energies_multireference(config, table):
     energies_block = AtomicEnergiesBlock(
-        atomic_energies=np.array([[1.0, 3.0], [2.0, 4.0]])
-    )
+        atomic_energies=np.array([[1.0, 3.0], [2.0, 4.0]]),
+    ).to(test_dtype)
     config.head = "MP2"
     data = AtomicData.from_config(
-        config, z_table=table, cutoff=3.0, heads=["DFT", "MP2"]
+        config, z_table=table, cutoff=3.0, heads=["DFT", "MP2"], dtype=test_dtype
     )
     data_loader = torch_geometric.dataloader.DataLoader(
         dataset=[data, data],
@@ -245,7 +241,7 @@ def test_atomic_energies_multireference(config, table):
 
 
 def test_compute_mean_rms_energy_forces_multi_head(data_loader, atomic_energies):
-    mean, rms = compute_mean_rms_energy_forces(data_loader, atomic_energies)
+    mean, rms = compute_mean_rms_energy_forces(data_loader, atomic_energies, dtype=test_dtype)
     assert isinstance(mean, np.ndarray)
     assert isinstance(rms, np.ndarray)
     assert mean.shape == (2,)

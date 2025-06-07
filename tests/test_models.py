@@ -9,7 +9,8 @@ from scipy.spatial.transform import Rotation as R
 from mace import data, modules, tools
 from mace.tools import torch_geometric
 
-torch.set_default_dtype(torch.float64)
+test_dtype = torch.float64
+
 config = data.Configuration(
     atomic_numbers=np.array([8, 1, 1]),
     positions=np.array(
@@ -94,9 +95,9 @@ def test_mace():
     model = modules.MACE(**model_config)
     model_compiled = jit.compile(model)
 
-    atomic_data = data.AtomicData.from_config(config, z_table=table, cutoff=3.0)
+    atomic_data = data.AtomicData.from_config(config, z_table=table, cutoff=3.0, dtype=test_dtype)
     atomic_data2 = data.AtomicData.from_config(
-        config_rotated, z_table=table, cutoff=3.0
+        config_rotated, z_table=table, cutoff=3.0, dtype=test_dtype
     )
 
     data_loader = torch_geometric.dataloader.DataLoader(
@@ -137,10 +138,11 @@ def test_dipole_mace():
         radial_type="gaussian",
     )
     model = modules.AtomicDipolesMACE(**model_config)
+    model.to(test_dtype)
 
-    atomic_data = data.AtomicData.from_config(config, z_table=table, cutoff=3.0)
+    atomic_data = data.AtomicData.from_config(config, z_table=table, cutoff=3.0, dtype=test_dtype)
     atomic_data2 = data.AtomicData.from_config(
-        config_rotated, z_table=table, cutoff=3.0
+        config_rotated, z_table=table, cutoff=3.0, dtype=test_dtype,
     )
 
     data_loader = torch_geometric.dataloader.DataLoader(
@@ -187,10 +189,11 @@ def test_energy_dipole_mace():
         correlation=3,
     )
     model = modules.EnergyDipolesMACE(**model_config)
+    model.to(test_dtype)
 
-    atomic_data = data.AtomicData.from_config(config, z_table=table, cutoff=3.0)
+    atomic_data = data.AtomicData.from_config(config, z_table=table, cutoff=3.0, dtype=test_dtype)
     atomic_data2 = data.AtomicData.from_config(
-        config_rotated, z_table=table, cutoff=3.0
+        config_rotated, z_table=table, cutoff=3.0, dtype=test_dtype
     )
 
     data_loader = torch_geometric.dataloader.DataLoader(
@@ -243,16 +246,19 @@ def test_mace_multi_reference():
         # radial_type="chebyshev",
         atomic_inter_scale=[1.0, 1.0],
         atomic_inter_shift=[0.0, 0.1],
+        dtype=test_dtype,
     )
     model = modules.ScaleShiftMACE(**model_config)
+    model.to(test_dtype)
+
     model_compiled = jit.compile(model)
     config.head = "Default"
     config_rotated.head = "dft"
     atomic_data = data.AtomicData.from_config(
-        config, z_table=table, cutoff=3.0, heads=["Default", "dft"]
+        config, z_table=table, cutoff=3.0, heads=["Default", "dft"], dtype=test_dtype
     )
     atomic_data2 = data.AtomicData.from_config(
-        config_rotated, z_table=table, cutoff=3.0, heads=["Default", "dft"]
+        config_rotated, z_table=table, cutoff=3.0, heads=["Default", "dft"], dtype=test_dtype
     )
 
     data_loader = torch_geometric.dataloader.DataLoader(
@@ -272,9 +278,6 @@ def test_atomic_virials_stresses():
     """
     Test that atomic virials and stresses sum to the total virials and stress.
     """
-    # Set default dtype for reproducibility
-    torch.set_default_dtype(torch.float64)
-
     # Create a periodic cell with ASE
     atoms = build.bulk("Si", "diamond", a=5.43)
     # Apply strain to ensure non-zero stress
@@ -316,6 +319,7 @@ def test_atomic_virials_stresses():
 
     # Create the model
     model = modules.ScaleShiftMACE(**model_config)
+    model.to(test_dtype)
 
     # Create atomic data
     atomic_data = data.AtomicData.from_config(
@@ -324,6 +328,7 @@ def test_atomic_virials_stresses():
         ),
         z_table=stress_z_table,
         cutoff=5.0,
+        dtype=test_dtype,
     )
 
     data_loader = torch_geometric.dataloader.DataLoader(

@@ -75,9 +75,7 @@ class MACE(torch.nn.Module):
         self.register_buffer(
             "atomic_numbers", torch.tensor(atomic_numbers, dtype=torch.int64)
         )
-        self.register_buffer(
-            "r_max", torch.tensor(r_max, dtype=torch.get_default_dtype())
-        )
+        self.register_buffer("r_max", torch.tensor(r_max))
         self.register_buffer(
             "num_interactions", torch.tensor(num_interactions, dtype=torch.int64)
         )
@@ -367,6 +365,14 @@ class MACE(torch.nn.Module):
             "node_feats": node_feats_out,
         }
 
+    def to(self, *args, **kwargs):
+        """Override to method to ensure atomic energies and scale shift blocks are properly moved"""
+        # pylint: disable=self-cls-assignment
+        self = super().to(*args, **kwargs)
+        self.r_max = self.r_max.to(*args, **kwargs)
+        self.atomic_energies_fn = self.atomic_energies_fn.to(*args, **kwargs)
+        return self
+
 
 @compile_mode("script")
 class ScaleShiftMACE(MACE):
@@ -519,6 +525,13 @@ class ScaleShiftMACE(MACE):
             "node_feats": node_feats_out,
         }
 
+    def to(self, *args, **kwargs):
+        """Override to method to ensure scale shift block is properly moved"""
+        # pylint: disable=self-cls-assignment
+        self = super().to(*args, **kwargs)
+        self.scale_shift = self.scale_shift.to(*args, **kwargs)
+        return self
+
 
 @compile_mode("script")
 class AtomicDipolesMACE(torch.nn.Module):
@@ -555,7 +568,7 @@ class AtomicDipolesMACE(torch.nn.Module):
         self.register_buffer(
             "atomic_numbers", torch.tensor(atomic_numbers, dtype=torch.int64)
         )
-        self.register_buffer("r_max", torch.tensor(r_max, dtype=torch.float64))
+        self.register_buffer("r_max", torch.tensor(r_max))
         self.register_buffer(
             "num_interactions", torch.tensor(num_interactions, dtype=torch.int64)
         )
@@ -733,6 +746,13 @@ class AtomicDipolesMACE(torch.nn.Module):
         }
         return output
 
+    def to(self, *args, **kwargs):
+        """Override to method to ensure r_max is properly moved"""
+        # pylint: disable=self-cls-assignment
+        self = super().to(*args, **kwargs)
+        self.r_max = self.r_max.to(*args, **kwargs)
+        return self
+
 
 @compile_mode("script")
 class EnergyDipolesMACE(torch.nn.Module):
@@ -766,7 +786,7 @@ class EnergyDipolesMACE(torch.nn.Module):
         self.register_buffer(
             "atomic_numbers", torch.tensor(atomic_numbers, dtype=torch.int64)
         )
-        self.register_buffer("r_max", torch.tensor(r_max, dtype=torch.float64))
+        self.register_buffer("r_max", torch.tensor(r_max))
         self.register_buffer(
             "num_interactions", torch.tensor(num_interactions, dtype=torch.int64)
         )
@@ -995,3 +1015,11 @@ class EnergyDipolesMACE(torch.nn.Module):
             "atomic_dipoles": atomic_dipoles,
         }
         return output
+
+    def to(self, *args, **kwargs):
+        """Override to method to ensure r_max is properly moved"""
+        # pylint: disable=self-cls-assignment
+        self = super().to(*args, **kwargs)
+        self.r_max = self.r_max.to(*args, **kwargs)
+        self.atomic_energies_fn = self.atomic_energies_fn.to(*args, **kwargs)
+        return self

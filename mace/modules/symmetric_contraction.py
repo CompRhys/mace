@@ -102,7 +102,6 @@ class Contraction(torch.nn.Module):
         self.num_features = irreps_in.count((0, 1))
         self.coupling_irreps = o3.Irreps([irrep.ir for irrep in irreps_in])
         self.correlation = correlation
-        dtype = torch.get_default_dtype()
 
         path_weight = []
         for nu in range(1, correlation + 1):
@@ -111,7 +110,6 @@ class Contraction(torch.nn.Module):
                 irreps_out=irrep_out,
                 correlation=nu,
                 use_cueq_cg=use_reduced_cg,
-                dtype=dtype,
             )[-1]
             path_weight.append(not torch.equal(U_matrix, torch.zeros_like(U_matrix)))
             self.register_buffer(f"U_matrix_{nu}", U_matrix)
@@ -257,6 +255,15 @@ class Contraction(torch.nn.Module):
 
     def U_tensors(self, nu: int):
         return dict(self.named_buffers())[f"U_matrix_{nu}"]
+
+    def to(self, *args, **kwargs):
+        # pylint: disable=self-cls-assignment
+        self = super().to(*args, **kwargs)
+        for nu in range(1, self.correlation + 1):
+            self.register_buffer(
+                f"U_matrix_{nu}", self.U_tensors(nu).to(*args, **kwargs)
+            )
+        return self
 
 
 class EmptyParam(torch.nn.Parameter):

@@ -36,7 +36,7 @@ CUDA_AVAILABLE = torch.cuda.is_available()
 
 class BackendTestBase:
     @pytest.fixture
-    def model_config(self, interaction_cls_first, hidden_irreps) -> Dict[str, Any]:
+    def model_config(self, interaction_cls_first, hidden_irreps, default_dtype) -> Dict[str, Any]:
         table = tools.AtomicNumberTable([6])
         return {
             "r_max": 5.0,
@@ -52,20 +52,19 @@ class BackendTestBase:
             "hidden_irreps": hidden_irreps,
             "MLP_irreps": o3.Irreps("16x0e"),
             "gate": F.silu,
-            "atomic_energies": torch.tensor([1.0]),
+            "atomic_energies": torch.tensor([1.0], dtype=default_dtype),
             "avg_num_neighbors": 8,
             "atomic_numbers": table.zs,
             "correlation": 3,
             "radial_type": "bessel",
             "atomic_inter_scale": 1.0,
             "atomic_inter_shift": 0.0,
+            "dtype": default_dtype,
         }
 
     @pytest.fixture
     def batch(self, device: str, default_dtype: torch.dtype) -> Dict[str, torch.Tensor]:
         from ase import build
-
-        torch.set_default_dtype(default_dtype)
 
         table = tools.AtomicNumberTable([6])
 
@@ -79,7 +78,7 @@ class BackendTestBase:
         configs = [data.config_from_atoms(atoms) for atoms in atoms_list]
         data_loader = torch_geometric.dataloader.DataLoader(
             dataset=[
-                data.AtomicData.from_config(config, z_table=table, cutoff=5.0)
+                data.AtomicData.from_config(config, z_table=table, cutoff=5.0, dtype=default_dtype)
                 for config in configs
             ],
             batch_size=1,
@@ -121,7 +120,7 @@ class BackendTestBase:
         torch.manual_seed(42)
 
         # Create original E3nn model
-        model_e3nn = modules.ScaleShiftMACE(**model_config).to(device)
+        model_e3nn = modules.ScaleShiftMACE(**model_config).to(device, dtype=default_dtype)
 
         # Convert E3nn to CuEq
         model_backend = run_e3nn_to_backend(model_e3nn).to(device)
