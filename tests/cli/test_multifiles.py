@@ -454,7 +454,7 @@ def test_multiple_xyz_per_head():
         z_table_elements = [1, 6, 7, 8]  # H, C, N, O
 
         # Create test data for each format
-        rng = np.random.RandomState(42)
+        rng = np.random.default_rng(42)
         seeds = rng.randint(0, 10000, size=10)  # More seeds for multiple files
 
         # Create isolated atoms for E0s (one of each element)
@@ -595,7 +595,7 @@ def test_multiple_xyz_per_head():
 
         # Create a calculator
         calc = MACECalculator(
-            model_paths=model_path, device="cpu", head="multi_xyz_head"
+            model_paths=model_path, device="cpu", head="multi_xyz_head", default_dtype=config["default_dtype"]
         )
 
         # Run prediction on a test atom
@@ -788,7 +788,7 @@ def test_single_xyz_per_head():
 
         # Create a calculator
         calc = MACECalculator(
-            model_paths=model_path, device="cpu", head="multi_xyz_head"
+            model_paths=model_path, device="cpu", head="multi_xyz_head", default_dtype=config["default_dtype"]
         )
 
         # Run prediction on a test atom

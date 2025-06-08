@@ -93,9 +93,8 @@ def test_foundations():
         radial_type="bessel",
         atomic_inter_scale=0.1,
         atomic_inter_shift=0.0,
-        dtype=dtype,
     )
-    model = modules.ScaleShiftMACE(**model_config)
+    model = modules.ScaleShiftMACE(**model_config).to(dtype=dtype)
     calc_foundation = mace_mp(model="medium", device="cpu", default_dtype="float64")
     model_loaded = load_foundations_elements(
         model,
