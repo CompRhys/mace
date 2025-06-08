@@ -92,7 +92,7 @@ def test_mace():
         correlation=3,
         radial_type="bessel",
     )
-    model = modules.MACE(**model_config)
+    model = modules.MACE(**model_config).to(test_dtype)
     model_compiled = jit.compile(model)
 
     atomic_data = data.AtomicData.from_config(config, z_table=table, cutoff=3.0, dtype=test_dtype)
@@ -246,7 +246,6 @@ def test_mace_multi_reference():
         # radial_type="chebyshev",
         atomic_inter_scale=[1.0, 1.0],
         atomic_inter_shift=[0.0, 0.1],
-        dtype=test_dtype,
     )
     model = modules.ScaleShiftMACE(**model_config)
     model.to(test_dtype)
