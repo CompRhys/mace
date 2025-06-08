@@ -251,7 +251,7 @@ def test_compute_mean_rms_energy_forces_multi_head(data_loader, atomic_energies)
 
 
 def test_compute_statistics(data_loader, atomic_energies):
-    avg_num_neighbors, mean, std = compute_statistics(data_loader, atomic_energies)
+    avg_num_neighbors, mean, std = compute_statistics(data_loader, atomic_energies, dtype=test_dtype)
     assert isinstance(avg_num_neighbors, float)
     assert isinstance(mean, np.ndarray)
     assert isinstance(std, np.ndarray)
