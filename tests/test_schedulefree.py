@@ -9,6 +9,7 @@ from e3nn import o3
 
 from mace import data, modules, tools
 from mace.tools import scripts_utils, torch_geometric
+from mace.tools.torch_tools import dtype_dict
 
 try:
     import schedulefree
@@ -20,9 +21,12 @@ except ImportError:
 table = tools.AtomicNumberTable([6])
 atomic_energies = np.array([1.0], dtype=float)
 cutoff = 5.0
-test_dtype = torch.float64
 
-def create_mace(device: str, seed: int = 1702):
+@pytest.fixture
+def default_dtype_str():
+    return "float64"
+
+def create_mace(device: str, default_dtype: str, seed: int = 1702):
     torch_geometric.seed_everything(seed)
 
     model_config = {
@@ -46,14 +50,15 @@ def create_mace(device: str, seed: int = 1702):
         "atomic_numbers": table.zs,
         "correlation": 3,
         "radial_type": "bessel",
-        "dtype": test_dtype,
     }
-    model = modules.MACE(**model_config)
+    model = modules.MACE(**model_config).to(dtype_dict[default_dtype])
     return model.to(device)
 
 
-def create_batch(device: str):
+def create_batch(device: str, default_dtype: str):
     from ase import build
+
+    dtype = dtype_dict[default_dtype]
 
     size = 2
     atoms = build.bulk("C", "diamond", a=3.567, cubic=True)
@@ -63,7 +68,7 @@ def create_batch(device: str):
     configs = [data.config_from_atoms(atoms) for atoms in atoms_list]
     data_loader = torch_geometric.dataloader.DataLoader(
         dataset=[
-            data.AtomicData.from_config(config, z_table=table, cutoff=cutoff)
+            data.AtomicData.from_config(config, z_table=table, cutoff=cutoff, dtype=dtype)
             for config in configs
         ],
         batch_size=1,
@@ -80,8 +85,9 @@ def do_optimization_step(
     model,
     optimizer,
     device,
+    default_dtype,
 ):
-    batch = create_batch(device)
+    batch = create_batch(device, default_dtype)
     model.train()
     optimizer.train()
     optimizer.zero_grad()
@@ -93,9 +99,9 @@ def do_optimization_step(
     optimizer.eval()
 
 
-@pytest.mark.parametrize("device", ["cpu", "cuda"])
-def test_can_load_checkpoint(device):
-    model = create_mace(device)
+@pytest.mark.parametrize("device", ["cpu"] + (["cuda"] if torch.cuda.is_available() else []))
+def test_can_load_checkpoint(device, default_dtype_str):
+    model = create_mace(device, default_dtype_str)
     optimizer = schedulefree.adamw_schedulefree.AdamWScheduleFree(model.parameters())
     args = MagicMock()
     args.optimizer = "schedulefree"
@@ -107,8 +113,8 @@ def test_can_load_checkpoint(device):
             directory=d, keep=False, tag="schedulefree"
         )
         for _ in range(10):
-            do_optimization_step(model, optimizer, device)
-        batch = create_batch(device)
+            do_optimization_step(model, optimizer, device, default_dtype_str)
+        batch = create_batch(device, default_dtype_str)
         output = model(batch)
         energy = output["energy"].detach().cpu().numpy()
 
@@ -120,7 +126,7 @@ def test_can_load_checkpoint(device):
             state=tools.CheckpointState(model, optimizer, lr_scheduler),
             swa=False,
         )
-        batch = create_batch(device)
+        batch = create_batch(device, default_dtype_str)
         output = model(batch)
         new_energy = output["energy"].detach().cpu().numpy()
         assert np.allclose(energy, new_energy, atol=1e-9)
