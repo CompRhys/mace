@@ -19,6 +19,10 @@ from ase.calculators.singlepoint import SinglePointCalculator
 from mace.calculators import MACECalculator
 
 
+preprocess_script = "mace_prepare_data"
+run_train_script = "mace_run_train"
+
+
 def create_test_atoms(num_atoms=5, seed=42):
     """Create random atoms for testing purposes with energy, forces, and stress."""
     # Set random seed for reproducibility
@@ -72,7 +76,9 @@ def create_e0s_file(e0s_dict, filename):
     return filename
 
 
-def create_h5_dataset(xyz_file, output_dir, e0s_file=None, r_max=5.0, seed=42, default_dtype=""):
+def create_h5_dataset(
+    xyz_file, output_dir, e0s_file=None, r_max=5.0, seed=42, default_dtype=""
+):
     """
     Run MACE's preprocess_data.py script to convert an xyz file to h5 format.
 
@@ -88,11 +94,6 @@ def create_h5_dataset(xyz_file, output_dir, e0s_file=None, r_max=5.0, seed=42, d
     """
     # Make sure output directory exists
     os.makedirs(output_dir, exist_ok=True)
-
-    # Find the path to the preprocess_data.py script
-    preprocess_script = (
-        Path(__file__).parent.parent / "mace" / "cli" / "preprocess_data.py"
-    )
 
     # Set up command to run preprocess_data.py
     cmd = [
@@ -360,11 +361,6 @@ def test_multifile_training(default_dtype):
         with open(config_path, "w", encoding="utf-8") as f:
             yaml.dump(config, f)
 
-        # Import the modified run_train from our local module
-        run_train_script = (
-            Path(__file__).parent.parent / "mace" / "cli" / "run_train.py"
-        )
-
         # Run training with subprocess
         cmd = [sys.executable, str(run_train_script), f"--config={config_path}"]
 
@@ -390,9 +386,9 @@ def test_multifile_training(default_dtype):
         print(process.stderr.decode())
 
         # Check that process completed successfully
-        assert (
-            process.returncode == 0
-        ), f"Training failed with error: {process.stderr.decode()}"
+        assert process.returncode == 0, (
+            f"Training failed with error: {process.stderr.decode()}"
+        )
 
         # Check that model was created
         model_path = os.path.join(model_dir, "multifile_test.model")
@@ -403,7 +399,12 @@ def test_multifile_training(default_dtype):
         assert model is not None, "Failed to load model"
 
         # Create a calculator
-        calc = MACECalculator(model_paths=model_path, device="cpu", head="head1", default_dtype=config["default_dtype"])
+        calc = MACECalculator(
+            model_paths=model_path,
+            device="cpu",
+            head="head1",
+            default_dtype=config["default_dtype"],
+        )
 
         # Run prediction on a test atom
         test_atom = create_test_atoms(num_atoms=5, seed=99999)
@@ -551,11 +552,6 @@ def test_multiple_xyz_per_head():
         with open(config_path, "w", encoding="utf-8") as f:
             yaml.dump(config, f)
 
-        # Import the modified run_train from our local module
-        run_train_script = (
-            Path(__file__).parent.parent / "mace" / "cli" / "run_train.py"
-        )
-
         # Run training with subprocess
         cmd = [sys.executable, str(run_train_script), f"--config={config_path}"]
 
@@ -581,9 +577,9 @@ def test_multiple_xyz_per_head():
         print(process.stderr.decode())
 
         # Check that process completed successfully
-        assert (
-            process.returncode == 0
-        ), f"Training failed with error: {process.stderr.decode()}"
+        assert process.returncode == 0, (
+            f"Training failed with error: {process.stderr.decode()}"
+        )
 
         # Check that model was created
         model_path = os.path.join(model_dir, "multi_xyz_test.model")
@@ -595,7 +591,10 @@ def test_multiple_xyz_per_head():
 
         # Create a calculator
         calc = MACECalculator(
-            model_paths=model_path, device="cpu", head="multi_xyz_head", default_dtype=config["default_dtype"]
+            model_paths=model_path,
+            device="cpu",
+            head="multi_xyz_head",
+            default_dtype=config["default_dtype"],
         )
 
         # Run prediction on a test atom
@@ -744,11 +743,6 @@ def test_single_xyz_per_head():
         with open(config_path, "w", encoding="utf-8") as f:
             yaml.dump(config, f)
 
-        # Import the modified run_train from our local module
-        run_train_script = (
-            Path(__file__).parent.parent / "mace" / "cli" / "run_train.py"
-        )
-
         # Run training with subprocess
         cmd = [sys.executable, str(run_train_script), f"--config={config_path}"]
 
@@ -774,9 +768,9 @@ def test_single_xyz_per_head():
         print(process.stderr.decode())
 
         # Check that process completed successfully
-        assert (
-            process.returncode == 0
-        ), f"Training failed with error: {process.stderr.decode()}"
+        assert process.returncode == 0, (
+            f"Training failed with error: {process.stderr.decode()}"
+        )
 
         # Check that model was created
         model_path = os.path.join(model_dir, "multi_xyz_test.model")
@@ -788,7 +782,10 @@ def test_single_xyz_per_head():
 
         # Create a calculator
         calc = MACECalculator(
-            model_paths=model_path, device="cpu", head="multi_xyz_head", default_dtype=config["default_dtype"]
+            model_paths=model_path,
+            device="cpu",
+            head="multi_xyz_head",
+            default_dtype=config["default_dtype"],
         )
 
         # Run prediction on a test atom
@@ -949,10 +946,6 @@ def test_multihead_finetuning_different_formats():
             "force_mh_ft_lr": True,  # Force using specified learning rate
         }
 
-        # Run finetuning
-        run_train_script = (
-            Path(__file__).parent.parent / "mace" / "cli" / "run_train.py"
-        )
         env = os.environ.copy()
         env["PYTHONPATH"] = (
             str(Path(__file__).parent.parent) + ":" + env.get("PYTHONPATH", "")
@@ -981,9 +974,9 @@ def test_multihead_finetuning_different_formats():
         print(process.stderr.decode())
 
         # Check that process completed successfully
-        assert (
-            process.returncode == 0
-        ), f"Finetuning failed with error: {process.stderr.decode()}"
+        assert process.returncode == 0, (
+            f"Finetuning failed with error: {process.stderr.decode()}"
+        )
 
         # Check that model was created
         model_path = os.path.join(model_dir, "multihead_finetuned.model")
@@ -992,9 +985,9 @@ def test_multihead_finetuning_different_formats():
         # Load model and verify it has the expected heads
         model = torch.load(model_path, map_location="cpu")
         assert hasattr(model, "heads"), "Model does not have heads attribute"
-        assert set(["xyz_head", "h5_head", "pt_head"]).issubset(
-            set(model.heads)
-        ), "Expected heads not found in model"
+        assert set(["xyz_head", "h5_head", "pt_head"]).issubset(set(model.heads)), (
+            "Expected heads not found in model"
+        )
 
         # Try to run the model with both heads
         # For xyz_head

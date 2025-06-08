@@ -10,7 +10,7 @@ import yaml
 from ase.atoms import Atoms
 
 pytest_mace_dir = Path(__file__).parent.parent
-preprocess_data = Path(__file__).parent.parent / "mace" / "cli" / "preprocess_data.py"
+preprocess_data = "mace_prepare_data"
 
 
 @pytest.fixture
@@ -66,9 +66,7 @@ def test_preprocess_data(tmp_path, sample_configs):
     print("DEBUG subprocess PYTHONPATH", run_env["PYTHONPATH"])
 
     cmd = (
-        sys.executable
-        + " "
-        + str(preprocess_data)
+        str(preprocess_data)
         + " "
         + " ".join(
             [
@@ -78,7 +76,7 @@ def test_preprocess_data(tmp_path, sample_configs):
         )
     )
 
-    p = subprocess.run(cmd.split(), env=run_env, check=True)
+    p = subprocess.run(cmd.split(), check=True)
     assert p.returncode == 0
 
     # Check if the output files are created
@@ -193,15 +191,7 @@ def test_preprocess_config(tmp_path, sample_configs):
     run_env["PYTHONPATH"] = ":".join(sys.path)
     print("DEBUG subprocess PYTHONPATH", run_env["PYTHONPATH"])
 
-    cmd = (
-        sys.executable
-        + " "
-        + str(preprocess_data)
-        + " "
-        + "--config"
-        + " "
-        + str(filename)
-    )
+    cmd = str(preprocess_data) + " " + "--config" + " " + str(filename)
 
-    p = subprocess.run(cmd.split(), env=run_env, check=True)
+    p = subprocess.run(cmd.split(), check=True)
     assert p.returncode == 0

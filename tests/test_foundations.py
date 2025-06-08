@@ -25,8 +25,6 @@ MODEL_PATH = (
     / "2023-12-03-mace-mp.model"
 )
 
-
-
 @pytest.skip("Problem with the float type", allow_module_level=True)
 def test_foundations():
     dtype = torch.float64

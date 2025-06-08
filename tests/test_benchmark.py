@@ -16,10 +16,6 @@ from mace.tools.torch_tools import dtype_dict
 def is_mace_full_bench():
     return os.environ.get("MACE_FULL_BENCH", "0") == "1"
 
-
-
-
-
 def load_mace_mp_medium(dtype, compile_mode, device):
     calc = mace_mp(
         model="medium",

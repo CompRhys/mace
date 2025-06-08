@@ -20,8 +20,7 @@ try:
 except ImportError:
     CUET_AVAILABLE = False
 
-pytest_mace_dir = Path(__file__).parent.parent
-run_train = Path(__file__).parent.parent / "mace" / "cli" / "run_train.py"
+run_train = "mace_run_train"
 
 
 @pytest.fixture
@@ -105,16 +104,8 @@ def trained_model(tmp_path_factory, fitting_configs, core_mace_params):
     mace_params["model_dir"] = str(tmp_path)
     mace_params["train_file"] = tmp_path / "fit.xyz"
 
-    # make sure run_train.py is using the mace that is currently being tested
-    run_env = os.environ.copy()
-    sys.path.insert(0, str(Path(__file__).parent.parent))
-    run_env["PYTHONPATH"] = ":".join(sys.path)
-    print("DEBUG subprocess PYTHONPATH", run_env["PYTHONPATH"])
-
     cmd = (
-        sys.executable
-        + " "
-        + str(run_train)
+        str(run_train)
         + " "
         + " ".join(
             [
@@ -124,7 +115,7 @@ def trained_model(tmp_path_factory, fitting_configs, core_mace_params):
         )
     )
 
-    p = subprocess.run(cmd.split(), env=run_env, check=True)
+    p = subprocess.run(cmd.split(), check=True)
 
     assert p.returncode == 0
 
@@ -152,16 +143,8 @@ def trained_equivariant_model(tmp_path_factory, fitting_configs, core_mace_param
     mace_params["model_dir"] = str(tmp_path)
     mace_params["train_file"] = tmp_path / "fit.xyz"
 
-    # make sure run_train.py is using the mace that is currently being tested
-    run_env = os.environ.copy()
-    sys.path.insert(0, str(Path(__file__).parent.parent))
-    run_env["PYTHONPATH"] = ":".join(sys.path)
-    print("DEBUG subprocess PYTHONPATH", run_env["PYTHONPATH"])
-
     cmd = (
-        sys.executable
-        + " "
-        + str(run_train)
+        str(run_train)
         + " "
         + " ".join(
             [
@@ -171,7 +154,7 @@ def trained_equivariant_model(tmp_path_factory, fitting_configs, core_mace_param
         )
     )
 
-    p = subprocess.run(cmd.split(), env=run_env, check=True)
+    p = subprocess.run(cmd.split(), check=True)
 
     assert p.returncode == 0
 
@@ -199,16 +182,8 @@ def trained_equivariant_model_cueq(tmp_path_factory, fitting_configs, core_mace_
     mace_params["model_dir"] = str(tmp_path)
     mace_params["train_file"] = tmp_path / "fit.xyz"
 
-    # make sure run_train.py is using the mace that is currently being tested
-    run_env = os.environ.copy()
-    sys.path.insert(0, str(Path(__file__).parent.parent))
-    run_env["PYTHONPATH"] = ":".join(sys.path)
-    print("DEBUG subprocess PYTHONPATH", run_env["PYTHONPATH"])
-
     cmd = (
-        sys.executable
-        + " "
-        + str(run_train)
+        str(run_train)
         + " "
         + " ".join(
             [
@@ -218,7 +193,7 @@ def trained_equivariant_model_cueq(tmp_path_factory, fitting_configs, core_mace_
         )
     )
 
-    p = subprocess.run(cmd.split(), env=run_env, check=True)
+    p = subprocess.run(cmd.split(), check=True)
 
     assert p.returncode == 0
 
@@ -271,16 +246,8 @@ def trained_dipole_model(tmp_path_factory, fitting_configs, default_dtype_str):
     mace_params["model_dir"] = str(tmp_path)
     mace_params["train_file"] = tmp_path / "fit.xyz"
 
-    # make sure run_train.py is using the mace that is currently being tested
-    run_env = os.environ.copy()
-    sys.path.insert(0, str(Path(__file__).parent.parent))
-    run_env["PYTHONPATH"] = ":".join(sys.path)
-    print("DEBUG subprocess PYTHONPATH", run_env["PYTHONPATH"])
-
     cmd = (
-        sys.executable
-        + " "
-        + str(run_train)
+        str(run_train)
         + " "
         + " ".join(
             [
@@ -290,7 +257,7 @@ def trained_dipole_model(tmp_path_factory, fitting_configs, default_dtype_str):
         )
     )
 
-    p = subprocess.run(cmd.split(), env=run_env, check=True)
+    p = subprocess.run(cmd.split(), check=True)
 
     assert p.returncode == 0
 
@@ -341,16 +308,8 @@ def trained_energy_dipole_model(tmp_path_factory, fitting_configs, default_dtype
     mace_params["model_dir"] = str(tmp_path)
     mace_params["train_file"] = tmp_path / "fit.xyz"
 
-    # make sure run_train.py is using the mace that is currently being tested
-    run_env = os.environ.copy()
-    sys.path.insert(0, str(Path(__file__).parent.parent))
-    run_env["PYTHONPATH"] = ":".join(sys.path)
-    print("DEBUG subprocess PYTHONPATH", run_env["PYTHONPATH"])
-
     cmd = (
-        sys.executable
-        + " "
-        + str(run_train)
+        str(run_train)
         + " "
         + " ".join(
             [
@@ -360,7 +319,7 @@ def trained_energy_dipole_model(tmp_path_factory, fitting_configs, default_dtype
         )
     )
 
-    p = subprocess.run(cmd.split(), env=run_env, check=True)
+    p = subprocess.run(cmd.split(), check=True)
 
     assert p.returncode == 0
 
@@ -392,16 +351,8 @@ def trained_committee(tmp_path_factory, fitting_configs, core_mace_params):
         mace_params["model_dir"] = str(tmp_path)
         mace_params["train_file"] = tmp_path / "fit.xyz"
 
-        # make sure run_train.py is using the mace that is currently being tested
-        run_env = os.environ.copy()
-        sys.path.insert(0, str(Path(__file__).parent.parent))
-        run_env["PYTHONPATH"] = ":".join(sys.path)
-        print("DEBUG subprocess PYTHONPATH", run_env["PYTHONPATH"])
-
         cmd = (
-            sys.executable
-            + " "
-            + str(run_train)
+            str(run_train)
             + " "
             + " ".join(
                 [
@@ -411,7 +362,7 @@ def trained_committee(tmp_path_factory, fitting_configs, core_mace_params):
             )
         )
 
-        p = subprocess.run(cmd.split(), env=run_env, check=True)
+        p = subprocess.run(cmd.split(), check=True)
 
         assert p.returncode == 0
 

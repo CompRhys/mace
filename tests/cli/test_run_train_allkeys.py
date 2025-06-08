@@ -16,7 +16,7 @@ from mace.cli.run_train import run as run_mace_train
 from mace.data.utils import KeySpecification
 from mace.tools import build_default_arg_parser
 
-run_train = Path(__file__).parent.parent / "mace" / "cli" / "run_train.py"
+run_train = "mace_run_train"
 
 
 _mace_params = {
@@ -394,9 +394,7 @@ def test_key_specification_methods(tmp_path, yaml_contents, name, expected_value
     print("DEBUG subprocess PYTHONPATH", run_env["PYTHONPATH"])
 
     cmd = (
-        sys.executable
-        + " "
-        + str(run_train)
+        str(run_train)
         + " "
         + " ".join(
             [
@@ -406,7 +404,7 @@ def test_key_specification_methods(tmp_path, yaml_contents, name, expected_value
         )
     )
 
-    p = subprocess.run(cmd.split(), env=run_env, cwd=tmp_path, check=True)
+    p = subprocess.run(cmd.split(), cwd=tmp_path, check=True)
     assert p.returncode == 0
 
     if "heads" in yaml_contents:
@@ -426,9 +424,7 @@ def test_key_specification_methods(tmp_path, yaml_contents, name, expected_value
     print(name)
     print("Es", Es)
 
-    npt.assert_allclose(
-        np.asarray(Es), expected_value, rtol=1e-8, atol=1e-8
-    )
+    npt.assert_allclose(np.asarray(Es), expected_value, rtol=1e-8, atol=1e-8)
 
 
 def test_multihead_finetuning_does_not_modify_default_keyspec(tmp_path):

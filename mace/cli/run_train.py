@@ -197,6 +197,8 @@ def run(args) -> None:
                     model_foundation = remove_pt_head(
                         model_foundation, args.foundation_head
                     )
+
+        model_foundation = model_foundation.to(dtype=dtype)
     else:
         args.multiheads_finetuning = False
 

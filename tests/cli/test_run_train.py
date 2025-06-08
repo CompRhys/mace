@@ -20,7 +20,7 @@ try:
 except ImportError:
     CUET_AVAILABLE = False
 
-run_train = Path(__file__).parent.parent / "mace" / "cli" / "run_train.py"
+run_train = "mace_run_train"
 
 
 @pytest.fixture(name="fitting_configs")
@@ -98,6 +98,7 @@ _mace_params = {
     "amsgrad": None,
     "restart_latest": None,
     "device": "cpu",
+    "default_dtype": "float64",
     "seed": 5,
     "loss": "stress",
     "energy_key": "REF_energy",
@@ -116,16 +117,8 @@ def test_run_train(tmp_path, fitting_configs):
     mace_params["model_dir"] = str(tmp_path)
     mace_params["train_file"] = tmp_path / "fit.xyz"
 
-    # make sure run_train.py is using the mace that is currently being tested
-    run_env = os.environ.copy()
-    sys.path.insert(0, str(Path(__file__).parent.parent))
-    run_env["PYTHONPATH"] = ":".join(sys.path)
-    print("DEBUG subprocess PYTHONPATH", run_env["PYTHONPATH"])
-
     cmd = (
-        sys.executable
-        + " "
-        + str(run_train)
+        str(run_train)
         + " "
         + " ".join(
             [
@@ -135,10 +128,14 @@ def test_run_train(tmp_path, fitting_configs):
         )
     )
 
-    p = subprocess.run(cmd.split(), env=run_env, check=True)
+    p = subprocess.run(cmd.split(), check=True)
     assert p.returncode == 0
 
-    calc = MACECalculator(model_paths=tmp_path / "MACE.model", device="cpu")
+    calc = MACECalculator(
+        model_paths=tmp_path / "MACE.model",
+        device="cpu",
+        default_dtype=mace_params["default_dtype"],
+    )
 
     Es = []
     for at in fitting_configs:
@@ -187,16 +184,8 @@ def test_run_train_missing_data(tmp_path, fitting_configs):
     mace_params["model_dir"] = str(tmp_path)
     mace_params["train_file"] = tmp_path / "fit.xyz"
 
-    # make sure run_train.py is using the mace that is currently being tested
-    run_env = os.environ.copy()
-    sys.path.insert(0, str(Path(__file__).parent.parent))
-    run_env["PYTHONPATH"] = ":".join(sys.path)
-    print("DEBUG subprocess PYTHONPATH", run_env["PYTHONPATH"])
-
     cmd = (
-        sys.executable
-        + " "
-        + str(run_train)
+        str(run_train)
         + " "
         + " ".join(
             [
@@ -206,10 +195,14 @@ def test_run_train_missing_data(tmp_path, fitting_configs):
         )
     )
 
-    p = subprocess.run(cmd.split(), env=run_env, check=True)
+    p = subprocess.run(cmd.split(), check=True)
     assert p.returncode == 0
 
-    calc = MACECalculator(model_paths=tmp_path / "MACE.model", device="cpu")
+    calc = MACECalculator(
+        model_paths=tmp_path / "MACE.model",
+        device="cpu",
+        default_dtype=mace_params["default_dtype"],
+    )
 
     Es = []
     for at in fitting_configs:
@@ -258,16 +251,8 @@ def test_run_train_no_stress(tmp_path, fitting_configs):
     mace_params["train_file"] = tmp_path / "fit.xyz"
     mace_params["loss"] = "weighted"
 
-    # make sure run_train.py is using the mace that is currently being tested
-    run_env = os.environ.copy()
-    sys.path.insert(0, str(Path(__file__).parent.parent))
-    run_env["PYTHONPATH"] = ":".join(sys.path)
-    print("DEBUG subprocess PYTHONPATH", run_env["PYTHONPATH"])
-
     cmd = (
-        sys.executable
-        + " "
-        + str(run_train)
+        str(run_train)
         + " "
         + " ".join(
             [
@@ -277,10 +262,14 @@ def test_run_train_no_stress(tmp_path, fitting_configs):
         )
     )
 
-    p = subprocess.run(cmd.split(), env=run_env, check=True)
+    p = subprocess.run(cmd.split(), check=True)
     assert p.returncode == 0
 
-    calc = MACECalculator(model_paths=tmp_path / "MACE.model", device="cpu")
+    calc = MACECalculator(
+        model_paths=tmp_path / "MACE.model",
+        device="cpu",
+        default_dtype=mace_params["default_dtype"],
+    )
 
     Es = []
     for at in fitting_configs:
@@ -364,16 +353,9 @@ def test_run_train_multihead(tmp_path, fitting_configs):
     mace_params["batch_size"] = 2
     mace_params["num_samples_pt"] = 50
     mace_params["subselect_pt"] = "random"
-    # make sure run_train.py is using the mace that is currently being tested
-    run_env = os.environ.copy()
-    sys.path.insert(0, str(Path(__file__).parent.parent))
-    run_env["PYTHONPATH"] = ":".join(sys.path)
-    print("DEBUG subprocess PYTHONPATH", run_env["PYTHONPATH"])
 
     cmd = (
-        sys.executable
-        + " "
-        + str(run_train)
+        str(run_train)
         + " "
         + " ".join(
             [
@@ -383,7 +365,7 @@ def test_run_train_multihead(tmp_path, fitting_configs):
         )
     )
 
-    p = subprocess.run(cmd.split(), env=run_env, check=True)
+    p = subprocess.run(cmd.split(), check=True)
     assert p.returncode == 0
 
     calc = MACECalculator(
@@ -448,9 +430,7 @@ def test_run_train_foundation(tmp_path, fitting_configs):
     run_env["PYTHONPATH"] = ":".join(sys.path)
 
     cmd = (
-        sys.executable
-        + " "
-        + str(run_train)
+        str(run_train)
         + " "
         + " ".join(
             [
@@ -460,7 +440,7 @@ def test_run_train_foundation(tmp_path, fitting_configs):
         )
     )
 
-    p = subprocess.run(cmd.split(), env=run_env, check=True)
+    p = subprocess.run(cmd.split(), check=True)
     assert p.returncode == 0
 
     calc = MACECalculator(
@@ -555,16 +535,9 @@ def test_run_train_foundation_multihead(tmp_path, fitting_configs):
     mace_params["atomic_numbers"] = "[" + ",".join(map(str, atomic_numbers)) + "]"
     mace_params["filter_type_pt"] = "combinations"
     mace_params["force_mh_ft_lr"] = True
-    # make sure run_train.py is using the mace that is currently being tested
-    run_env = os.environ.copy()
-    sys.path.insert(0, str(Path(__file__).parent.parent))
-    run_env["PYTHONPATH"] = ":".join(sys.path)
-    print("DEBUG subprocess PYTHONPATH", run_env["PYTHONPATH"])
 
     cmd = (
-        sys.executable
-        + " "
-        + str(run_train)
+        str(run_train)
         + " "
         + " ".join(
             [
@@ -576,7 +549,7 @@ def test_run_train_foundation_multihead(tmp_path, fitting_configs):
 
     try:
         completed_process = subprocess.run(
-            cmd.split(), env=run_env, capture_output=True, text=True, check=True
+            cmd.split(), capture_output=True, text=True, check=True
         )
         # Process executed successfully
         print(completed_process.stdout)
@@ -636,7 +609,6 @@ def test_run_train_foundation_multihead_json(tmp_path, fitting_configs):
         np.concatenate([at.numbers for at in fitting_configs])
     ).tolist()
     for i, c in enumerate(fitting_configs):
-
         if i in (0, 1):
             continue  # skip isolated atoms, as energies specified by json files below
         if i % 2 == 0:
@@ -692,16 +664,9 @@ def test_run_train_foundation_multihead_json(tmp_path, fitting_configs):
     mace_params["atomic_numbers"] = "[" + ",".join(map(str, atomic_numbers)) + "]"
     mace_params["filter_type_pt"] = "combinations"
     mace_params["force_mh_ft_lr"] = True
-    # make sure run_train.py is using the mace that is currently being tested
-    run_env = os.environ.copy()
-    sys.path.insert(0, str(Path(__file__).parent.parent))
-    run_env["PYTHONPATH"] = ":".join(sys.path)
-    print("DEBUG subprocess PYTHONPATH", run_env["PYTHONPATH"])
 
     cmd = (
-        sys.executable
-        + " "
-        + str(run_train)
+        str(run_train)
         + " "
         + " ".join(
             [
@@ -713,7 +678,7 @@ def test_run_train_foundation_multihead_json(tmp_path, fitting_configs):
 
     try:
         completed_process = subprocess.run(
-            cmd.split(), env=run_env, capture_output=True, text=True, check=True
+            cmd.split(), capture_output=True, text=True, check=True
         )
         # Process executed successfully
         print(completed_process.stdout)
@@ -807,7 +772,7 @@ def test_run_train_multihead_replay_custum_finetuning(
         else:
             cmd.append(f"--{k}={v}")
 
-    p = subprocess.run(cmd, env=run_env, check=True)
+    p = subprocess.run(cmd, check=True)
     assert p.returncode == 0
 
     # Step 3: Create finetuning set
@@ -877,7 +842,7 @@ def test_run_train_multihead_replay_custum_finetuning(
         else:
             cmd.append(f"--{k}={v}")
 
-    p = subprocess.run(cmd, env=run_env, check=True)
+    p = subprocess.run(cmd, check=True)
     assert p.returncode == 0
 
     # Load and test the finetuned model
@@ -912,16 +877,8 @@ def test_run_train_cueq(tmp_path, fitting_configs):
     mace_params["enable_cueq"] = True
     mace_params["default_dtype"] = "float64"
 
-    # make sure run_train.py is using the mace that is currently being tested
-    run_env = os.environ.copy()
-    sys.path.insert(0, str(Path(__file__).parent.parent))
-    run_env["PYTHONPATH"] = ":".join(sys.path)
-    print("DEBUG subprocess PYTHONPATH", run_env["PYTHONPATH"])
-
     cmd = (
-        sys.executable
-        + " "
-        + str(run_train)
+        str(run_train)
         + " "
         + " ".join(
             [
@@ -933,7 +890,7 @@ def test_run_train_cueq(tmp_path, fitting_configs):
 
     try:
         completed_process = subprocess.run(
-            cmd.split(), env=run_env, capture_output=True, text=True, check=True
+            cmd.split(), capture_output=True, text=True, check=True
         )
         # Process executed successfully
         print(completed_process.stdout)
@@ -952,7 +909,10 @@ def test_run_train_cueq(tmp_path, fitting_configs):
         Es.append(at.get_potential_energy())
 
     calc = MACECalculator(
-        model_paths=tmp_path / "MACE.model", device="cpu", enable_cueq=True
+        model_paths=tmp_path / "MACE.model",
+        device="cpu",
+        enable_cueq=True,
+        default_dtype=mace_params["default_dtype"],
     )
     Es_cueq = []
     for at in fitting_configs[2:]:
@@ -995,7 +955,6 @@ def test_run_train_foundation_multihead_json_cueq(tmp_path, fitting_configs):
         np.concatenate([at.numbers for at in fitting_configs])
     ).tolist()
     for i, c in enumerate(fitting_configs):
-
         if i in (0, 1):
             continue  # skip isolated atoms, as energies specified by json files below
         if i % 2 == 0:
@@ -1054,16 +1013,9 @@ def test_run_train_foundation_multihead_json_cueq(tmp_path, fitting_configs):
     mace_params["device"] = "cpu"
     mace_params["force_mh_ft_lr"] = True
     mace_params["use_reduced_cg"] = False
-    # make sure run_train.py is using the mace that is currently being tested
-    run_env = os.environ.copy()
-    sys.path.insert(0, str(Path(__file__).parent.parent))
-    run_env["PYTHONPATH"] = ":".join(sys.path)
-    print("DEBUG subprocess PYTHONPATH", run_env["PYTHONPATH"])
 
     cmd = (
-        sys.executable
-        + " "
-        + str(run_train)
+        str(run_train)
         + " "
         + " ".join(
             [
@@ -1075,7 +1027,7 @@ def test_run_train_foundation_multihead_json_cueq(tmp_path, fitting_configs):
 
     try:
         completed_process = subprocess.run(
-            cmd.split(), env=run_env, capture_output=True, text=True, check=True
+            cmd.split(), capture_output=True, text=True, check=True
         )
         # Process executed successfully
         print(completed_process.stdout)
@@ -1138,16 +1090,8 @@ def test_run_train_lbfgs(tmp_path, fitting_configs):
     mace_params["lbfgs"] = None
     mace_params["max_num_epochs"] = 2
 
-    # make sure run_train.py is using the mace that is currently being tested
-    run_env = os.environ.copy()
-    sys.path.insert(0, str(Path(__file__).parent.parent))
-    run_env["PYTHONPATH"] = ":".join(sys.path)
-    print("DEBUG subprocess PYTHONPATH", run_env["PYTHONPATH"])
-
     cmd = (
-        sys.executable
-        + " "
-        + str(run_train)
+        str(run_train)
         + " "
         + " ".join(
             [
@@ -1157,10 +1101,14 @@ def test_run_train_lbfgs(tmp_path, fitting_configs):
         )
     )
 
-    p = subprocess.run(cmd.split(), env=run_env, check=True)
+    p = subprocess.run(cmd.split(), check=True)
     assert p.returncode == 0
 
-    calc = MACECalculator(model_paths=tmp_path / "MACE.model", device="cpu")
+    calc = MACECalculator(
+        model_paths=tmp_path / "MACE.model",
+        device="cpu",
+        default_dtype=mace_params["default_dtype"],
+    )
 
     Es = []
     for at in fitting_configs:
@@ -1197,7 +1145,6 @@ def test_run_train_lbfgs(tmp_path, fitting_configs):
 
 
 def test_run_train_foundation_elements(tmp_path, fitting_configs):
-
     ase.io.write(tmp_path / "fit.xyz", fitting_configs)
 
     base_params = {
@@ -1224,9 +1171,7 @@ def test_run_train_foundation_elements(tmp_path, fitting_configs):
     # First run: without foundation_model_elements (default behavior)
     mace_params = base_params.copy()
     cmd = (
-        sys.executable
-        + " "
-        + str(run_train)
+        str(run_train)
         + " "
         + " ".join(
             [
@@ -1235,7 +1180,7 @@ def test_run_train_foundation_elements(tmp_path, fitting_configs):
             ]
         )
     )
-    p = subprocess.run(cmd.split(), env=run_env, check=True)
+    p = subprocess.run(cmd.split(), check=True)
     assert p.returncode == 0
 
     # Load model and check elements
@@ -1248,9 +1193,7 @@ def test_run_train_foundation_elements(tmp_path, fitting_configs):
     mace_params["name"] = "MACE_all_elements"
     mace_params["foundation_model_elements"] = True  # Flag-only argument
     cmd = (
-        sys.executable
-        + " "
-        + str(run_train)
+        str(run_train)
         + " "
         + " ".join(
             [
@@ -1259,7 +1202,7 @@ def test_run_train_foundation_elements(tmp_path, fitting_configs):
             ]
         )
     )
-    p = subprocess.run(cmd.split(), env=run_env, check=True)
+    p = subprocess.run(cmd.split(), check=True)
     assert p.returncode == 0
 
     # Load model and check elements
@@ -1370,9 +1313,7 @@ def test_run_train_foundation_elements_multihead(tmp_path, fitting_configs):
     # First run: without foundation_model_elements (default behavior)
     mace_params = base_params.copy()
     cmd = (
-        sys.executable
-        + " "
-        + str(run_train)
+        str(run_train)
         + " "
         + " ".join(
             [
@@ -1383,7 +1324,7 @@ def test_run_train_foundation_elements_multihead(tmp_path, fitting_configs):
     )
     try:
         completed_process = subprocess.run(
-            cmd.split(), env=run_env, capture_output=True, text=True, check=True
+            cmd.split(), capture_output=True, text=True, check=True
         )
         # Process executed successfully
         print(completed_process.stdout)
@@ -1406,9 +1347,7 @@ def test_run_train_foundation_elements_multihead(tmp_path, fitting_configs):
     mace_params["name"] = "MACE_all_elements"
     mace_params["foundation_model_elements"] = True
     cmd = (
-        sys.executable
-        + " "
-        + str(run_train)
+        str(run_train)
         + " "
         + " ".join(
             [
@@ -1417,7 +1356,7 @@ def test_run_train_foundation_elements_multihead(tmp_path, fitting_configs):
             ]
         )
     )
-    p = subprocess.run(cmd.split(), env=run_env, check=True)
+    p = subprocess.run(cmd.split(), check=True)
     assert p.returncode == 0
 
     # Load model and check elements
