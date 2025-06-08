@@ -40,7 +40,7 @@ jobs:
 
       - name: Run general unit tests
         run: |
-          pytest tests --ignore=tests/test_cueq_oeq.py
+          pytest tests --ignore=tests/cli/test_cueq_oeq.py
 
   pytest-cueq:
     runs-on: ubuntu-latest
@@ -61,5 +61,5 @@ jobs:
 
       - name: Run cueq-specific tests
         run: |
-          pytest tests/test_cueq_oeq.py -k TestCueq
+          pytest tests/cli/test_cueq_oeq.py -k TestCueq
           pytest tests/test_calculator.py
