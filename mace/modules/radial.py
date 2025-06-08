@@ -203,6 +203,7 @@ class ZBLBasis(torch.nn.Module):
             "covalent_radii",
             torch.tensor(
                 ase.data.covalent_radii,
+                dtype=torch.get_default_dtype(),  # needed as source data is np.float64
             ),
         )
         if trainable:
@@ -282,6 +283,7 @@ class AgnesiTransform(torch.nn.Module):
             "covalent_radii",
             torch.tensor(
                 ase.data.covalent_radii,
+                dtype=torch.get_default_dtype(),  # needed as source data is np.float64
             ),
         )
         if trainable:
@@ -356,6 +358,7 @@ class SoftTransform(torch.nn.Module):
             "covalent_radii",
             torch.tensor(
                 ase.data.covalent_radii,
+                dtype=torch.get_default_dtype(),  # needed as source data is np.float64
             ),
         )
 
