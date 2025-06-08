@@ -9,6 +9,7 @@ import numpy as np
 import pytest
 import torch
 from ase.atoms import Atoms
+import numpy.testing as npt
 
 from mace.calculators import MACECalculator, mace_mp
 
@@ -171,7 +172,7 @@ def test_run_train(tmp_path, fitting_configs):
         -0.14751978636626545,
     ]
 
-    assert np.allclose(Es, ref_Es)
+    npt.assert_allclose(Es, ref_Es)
 
 
 def test_run_train_missing_data(tmp_path, fitting_configs):
@@ -241,7 +242,7 @@ def test_run_train_missing_data(tmp_path, fitting_configs):
         -0.11790833839379238,
         -0.14930562311066484,
     ]
-    assert np.allclose(Es, ref_Es)
+    npt.assert_allclose(Es, ref_Es)
 
 
 def test_run_train_no_stress(tmp_path, fitting_configs):
@@ -312,7 +313,7 @@ def test_run_train_no_stress(tmp_path, fitting_configs):
         -0.11776449630199368,
         -0.1489441490225184,
     ]
-    assert np.allclose(Es, ref_Es)
+    npt.assert_allclose(Es, ref_Es)
 
 
 def test_run_train_multihead(tmp_path, fitting_configs):
@@ -423,7 +424,7 @@ def test_run_train_multihead(tmp_path, fitting_configs):
         -0.06503477155294624,
         0.03436649147415213,
     ]
-    assert np.allclose(Es, ref_Es)
+    npt.assert_allclose(Es, ref_Es)
 
 
 def test_run_train_foundation(tmp_path, fitting_configs):
@@ -497,7 +498,7 @@ def test_run_train_foundation(tmp_path, fitting_configs):
         0.6019601821899414,
         0.7301387786865234,
     ]
-    assert np.allclose(Es, ref_Es)
+    npt.assert_allclose(Es, ref_Es)
 
 
 def test_run_train_foundation_multihead(tmp_path, fitting_configs):
@@ -625,7 +626,7 @@ def test_run_train_foundation_multihead(tmp_path, fitting_configs):
         0.7002358436584473,
         0.5574042201042175,
     ]
-    assert np.allclose(Es, ref_Es, atol=1e-1)
+    npt.assert_allclose(Es, ref_Es, atol=1e-1)
 
 
 def test_run_train_foundation_multihead_json(tmp_path, fitting_configs):
@@ -762,7 +763,7 @@ def test_run_train_foundation_multihead_json(tmp_path, fitting_configs):
         0.7002358436584473,
         0.5574042201042175,
     ]
-    assert np.allclose(Es, ref_Es, atol=1e-1)
+    npt.assert_allclose(Es, ref_Es, atol=1e-1)
 
 
 def test_run_train_multihead_replay_custum_finetuning(
@@ -982,8 +983,8 @@ def test_run_train_cueq(tmp_path, fitting_configs):
         -0.14751978636626545,
     ]
 
-    assert np.allclose(Es, ref_Es)
-    assert np.allclose(ref_Es, Es_cueq)
+    npt.assert_allclose(Es, ref_Es)
+    npt.assert_allclose(ref_Es, Es_cueq)
 
 
 @pytest.mark.skipif(not CUET_AVAILABLE, reason="cuequivariance not installed")
@@ -1124,7 +1125,7 @@ def test_run_train_foundation_multihead_json_cueq(tmp_path, fitting_configs):
         0.7002358436584473,
         0.5574042201042175,
     ]
-    assert np.allclose(Es, ref_Es, atol=1e-1)
+    npt.assert_allclose(Es, ref_Es, atol=1e-1)
 
 
 def test_run_train_lbfgs(tmp_path, fitting_configs):
@@ -1192,7 +1193,7 @@ def test_run_train_lbfgs(tmp_path, fitting_configs):
         -0.2348250569553676,
         -0.17593904833220647,
     ]
-    assert np.allclose(Es, ref_Es, atol=1e-2)
+    npt.assert_allclose(Es, ref_Es, atol=1e-2)
 
 
 def test_run_train_foundation_elements(tmp_path, fitting_configs):

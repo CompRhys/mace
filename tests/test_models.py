@@ -5,6 +5,7 @@ from ase import build
 from e3nn import o3
 from e3nn.util import jit
 from scipy.spatial.transform import Rotation as R
+import numpy.testing as npt
 
 from mace import data, modules, tools
 from mace.tools import torch_geometric
@@ -159,7 +160,7 @@ def test_dipole_mace():
     # sanity check of dipoles being the right shape
     assert output["dipole"][0].unsqueeze(0).shape == atomic_data.dipole.shape
     # test equivariance of output dipoles
-    assert np.allclose(
+    npt.assert_allclose(
         np.array(rot @ output["dipole"][0].detach().numpy()),
         output["dipole"][1].detach().numpy(),
     )
@@ -212,7 +213,7 @@ def test_energy_dipole_mace():
     # test energy is invariant
     assert torch.allclose(output["energy"][0], output["energy"][1])
     # test equivariance of output dipoles
-    assert np.allclose(
+    npt.assert_allclose(
         np.array(rot @ output["dipole"][0].detach().numpy()),
         output["dipole"][1].detach().numpy(),
     )

@@ -8,6 +8,7 @@ from ase.build import molecule
 from e3nn import o3
 from e3nn.util import jit
 from scipy.spatial.transform import Rotation as R
+import numpy.testing as npt
 
 from mace import data, modules, tools
 from mace.calculators import mace_mp, mace_off
@@ -200,7 +201,7 @@ def test_multi_reference():
     atoms.info["head"] = "MP2"
     atoms.calc = calc_foundation
     forces = atoms.get_forces()
-    assert np.allclose(
+    npt.assert_allclose(
         forces, forces_loaded.detach().numpy()[:5, :], atol=1e-5, rtol=1e-5
     )
 

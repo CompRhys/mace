@@ -13,8 +13,8 @@ pytest_mace_dir = Path(__file__).parent.parent
 preprocess_data = Path(__file__).parent.parent / "mace" / "cli" / "preprocess_data.py"
 
 
-@pytest.fixture(name="sample_configs")
-def fixture_sample_configs():
+@pytest.fixture
+def sample_configs():
     water = Atoms(
         numbers=[8, 1, 1],
         positions=[[0, -2.0, 0], [1, 0, 0], [0, 1, 0]],

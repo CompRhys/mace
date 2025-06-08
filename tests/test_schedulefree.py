@@ -6,6 +6,7 @@ import pytest
 import torch
 import torch.nn.functional as F
 from e3nn import o3
+import numpy.testing as npt
 
 from mace import data, modules, tools
 from mace.tools import scripts_utils, torch_geometric
@@ -129,4 +130,4 @@ def test_can_load_checkpoint(device, default_dtype_str):
         batch = create_batch(device, default_dtype_str)
         output = model(batch)
         new_energy = output["energy"].detach().cpu().numpy()
-        assert np.allclose(energy, new_energy, atol=1e-9)
+        npt.assert_allclose(energy, new_energy, atol=1e-9)

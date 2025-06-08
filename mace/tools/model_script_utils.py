@@ -174,7 +174,6 @@ def configure_model(
             use_reduced_cg=args.use_reduced_cg,
             use_so3=args.use_so3,
             cueq_config=cueq_config,
-            dtype=dtype,
         )
         model_config_foundation = None
 
@@ -188,6 +187,8 @@ def configure_model(
             load_readout=args.foundation_filter_elements,
             max_L=args.max_L,
         )
+
+    model.to(dtype)
 
     return model, output_args
 

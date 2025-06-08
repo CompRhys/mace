@@ -3,6 +3,7 @@ import pytest
 import torch
 import torch.nn.functional
 from e3nn import o3
+import numpy.testing as npt
 
 from mace.data import AtomicData, Configuration
 from mace.modules import (
@@ -209,7 +210,7 @@ def test_atomic_energies(config, table):
     energies = energies_block(batch.node_attrs).squeeze(-1)
     out = scatter.scatter_sum(src=energies, index=batch.batch, dim=-1, reduce="sum")
     out = to_numpy(out)
-    assert np.allclose(out, np.array([5.0, 5.0]))
+    npt.assert_allclose(out, np.array([5.0, 5.0]))
 
 
 def test_atomic_energies_multireference(config, table):
@@ -237,7 +238,7 @@ def test_atomic_energies_multireference(config, table):
     energies = energies[num_atoms_arange, node_heads]
     out = scatter.scatter_sum(src=energies, index=batch.batch, dim=-1, reduce="sum")
     out = to_numpy(out)
-    assert np.allclose(out, np.array([8.0, 8.0]))
+    npt.assert_allclose(out, np.array([8.0, 8.0]))
 
 
 def test_compute_mean_rms_energy_forces_multi_head(data_loader, atomic_energies):

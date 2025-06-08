@@ -469,7 +469,7 @@ def compute_statistics(
         )
     )
 
-    avg_num_neighbors = torch.mean(torch.cat(num_neighbors, dim=0))
+    avg_num_neighbors = torch.mean(torch.cat(num_neighbors, dim=0), dtype=dtype)
 
     return to_numpy(avg_num_neighbors).item(), mean, rms
 

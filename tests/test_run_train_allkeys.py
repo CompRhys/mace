@@ -9,6 +9,8 @@ import numpy as np
 import pytest
 from ase.atoms import Atoms
 
+import numpy.testing as npt
+
 from mace.calculators.mace import MACECalculator
 from mace.cli.run_train import run as run_mace_train
 from mace.data.utils import KeySpecification
@@ -424,9 +426,9 @@ def test_key_specification_methods(tmp_path, yaml_contents, name, expected_value
     print(name)
     print("Es", Es)
 
-    assert np.allclose(
+    npt.assert_allclose(
         np.asarray(Es), expected_value, rtol=1e-8, atol=1e-8
-    ), f"Expected {expected_value} but got {Es} with error {np.max(np.abs(Es - expected_value))}"
+    )
 
 
 def test_multihead_finetuning_does_not_modify_default_keyspec(tmp_path):
