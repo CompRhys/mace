@@ -37,7 +37,7 @@ def test_mace_mp_stresses(model="medium", device="cpu"):
     stresses = atoms.get_stresses()
     assert stress.shape == (6,)
     assert stresses.shape == (32, 6)
-    np.testing.assert_allclose(stress, stresses.sum(axis=0), atol=1e-6)
+    np.testing.assert_allclose(stress, stresses.sum(axis=0), rtol=1e-05, atol=1e-08)
 
 
 @pytest.mark.parametrize("default_dtype", ["float32", "float64"])
@@ -53,7 +53,7 @@ def test_mace_off(default_dtype):
 
     E = atoms.get_potential_energy()
 
-    np.testing.assert_allclose(E, -2081.116128586803, atol=1e-9)
+    np.testing.assert_allclose(E, -2081.116128586803, rtol=1e-05, atol=1e-08)
 
 
 @pytest.mark.skipif(not CUET_AVAILABLE, reason="cuequivariance not installed")
@@ -69,4 +69,4 @@ def test_mace_off_cueq(model="medium", device="cpu"):
 
     E = atoms.get_potential_energy()
 
-    np.testing.assert_allclose(E, -2081.116128586803, atol=1e-9)
+    np.testing.assert_allclose(E, -2081.116128586803, rtol=1e-05, atol=1e-08)

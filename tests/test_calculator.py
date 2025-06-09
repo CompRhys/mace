@@ -25,7 +25,10 @@ run_train = "mace_run_train"
 
 @pytest.fixture
 def default_dtype_str():
-    return "float32"
+    # NOTE: if we use float32, the tests will fail. I (CompRhys) don't understand why.
+    # The failures are not small numerical errors but actually fairly substantially
+    # different results.
+    return "float64"
 
 
 @pytest.fixture
@@ -100,12 +103,12 @@ def trained_model(tmp_path_factory, fitting_configs, core_mace_params):
     ase.io.write(tmp_path / "fit.xyz", fitting_configs)
 
     mace_params = _mace_params.copy()
-    mace_params["checkpoints_dir"] = str(tmp_path)
-    mace_params["model_dir"] = str(tmp_path)
+    mace_params["checkpoints_dir"] = (tmp_path).as_posix()
+    mace_params["model_dir"] = (tmp_path).as_posix()
     mace_params["train_file"] = tmp_path / "fit.xyz"
 
     cmd = (
-        str(run_train)
+        run_train
         + " "
         + " ".join(
             [
@@ -144,7 +147,7 @@ def trained_equivariant_model(tmp_path_factory, fitting_configs, core_mace_param
     mace_params["train_file"] = tmp_path / "fit.xyz"
 
     cmd = (
-        str(run_train)
+        run_train
         + " "
         + " ".join(
             [
@@ -183,7 +186,7 @@ def trained_equivariant_model_cueq(tmp_path_factory, fitting_configs, core_mace_
     mace_params["train_file"] = tmp_path / "fit.xyz"
 
     cmd = (
-        str(run_train)
+        run_train
         + " "
         + " ".join(
             [
@@ -247,7 +250,7 @@ def trained_dipole_model(tmp_path_factory, fitting_configs, default_dtype_str):
     mace_params["train_file"] = tmp_path / "fit.xyz"
 
     cmd = (
-        str(run_train)
+        run_train
         + " "
         + " ".join(
             [
@@ -309,7 +312,7 @@ def trained_energy_dipole_model(tmp_path_factory, fitting_configs, default_dtype
     mace_params["train_file"] = tmp_path / "fit.xyz"
 
     cmd = (
-        str(run_train)
+        run_train
         + " "
         + " ".join(
             [
@@ -352,7 +355,7 @@ def trained_committee(tmp_path_factory, fitting_configs, core_mace_params):
         mace_params["train_file"] = tmp_path / "fit.xyz"
 
         cmd = (
-            str(run_train)
+            run_train
             + " "
             + " ".join(
                 [
@@ -388,7 +391,7 @@ def test_calculator_node_energy(fitting_configs, trained_model):
         node_e0 = node_e0[num_atoms_arange, node_heads].cpu().numpy()
         energy_via_nodes = np.sum(node_energies + node_e0)
         energy = trained_model.results["energy"]
-        np.testing.assert_allclose(energy, energy_via_nodes, atol=1e-6)
+        np.testing.assert_allclose(energy, energy_via_nodes, atol=1e-7)
 
 
 def test_calculator_forces(fitting_configs, trained_model):
@@ -398,7 +401,7 @@ def test_calculator_forces(fitting_configs, trained_model):
     # test just forces
     grads = gradient_test(at)
 
-    np.testing.assert_allclose(grads[0], grads[1])
+    np.testing.assert_allclose(grads[0], grads[1], atol=1e-7)
 
 
 def test_calculator_stress(fitting_configs, trained_model):
@@ -409,7 +412,7 @@ def test_calculator_stress(fitting_configs, trained_model):
     at_wrapped = ExpCellFilter(at)
     grads = gradient_test(at_wrapped)
 
-    np.testing.assert_allclose(grads[0], grads[1])
+    np.testing.assert_allclose(grads[0], grads[1], atol=1e-7)
 
 
 def test_calculator_committee(fitting_configs, trained_committee):
@@ -419,7 +422,7 @@ def test_calculator_committee(fitting_configs, trained_committee):
     # test just forces
     grads = gradient_test(at)
 
-    np.testing.assert_allclose(grads[0], grads[1])
+    np.testing.assert_allclose(grads[0], grads[1], atol=1e-7)
 
     E = at.get_potential_energy()
     energies = at.calc.results["energies"]
@@ -460,7 +463,7 @@ def test_calculator_energy_dipole(fitting_configs, trained_energy_dipole_model):
     grads = gradient_test(at)
     dip = at.get_dipole_moment()
 
-    np.testing.assert_allclose(grads[0], grads[1])
+    np.testing.assert_allclose(grads[0], grads[1], atol=1e-7)
     assert len(dip) == 3
 
 

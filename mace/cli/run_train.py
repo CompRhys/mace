@@ -64,7 +64,7 @@ from mace.tools.scripts_utils import (
 )
 from mace.tools.slurm_distributed import DistributedEnvironment
 from mace.tools.tables_utils import create_error_table
-from mace.tools.torch_tools import check_module_dtypes, dtype_dict
+from mace.tools.torch_tools import dtype_dict
 from mace.tools.utils import AtomicNumberTable
 
 
@@ -87,6 +87,7 @@ def run(args) -> None:
     args.key_specification = KeySpecification()
     update_keyspec_from_kwargs(args.key_specification, vars(args))
 
+    # If XPU device is specified, check if Intel extension for PyTorch is installed
     if args.device == "xpu":
         try:
             import intel_extension_for_pytorch as ipex
@@ -94,6 +95,8 @@ def run(args) -> None:
             raise ImportError(
                 "Error: Intel extension for PyTorch not found, but XPU device was specified"
             ) from e
+
+    # Initialize distributed environment
     if args.distributed:
         try:
             distr_env = DistributedEnvironment()
@@ -130,6 +133,8 @@ def run(args) -> None:
     device = tools.init_device(args.device)
     dtype = dtype_dict[args.default_dtype]
     commit = print_git_commit()
+
+    # If foundation model is specified, load it
     model_foundation: Optional[torch.nn.Module] = None
     foundation_model_avg_num_neighbors = 0
     if args.foundation_model is not None:
@@ -166,14 +171,18 @@ def run(args) -> None:
         foundation_model_avg_num_neighbors = model_foundation.interactions[
             0
         ].avg_num_neighbors
+
         if (
             args.foundation_model not in ["small", "medium", "large"]
             and args.pt_train_file is None
         ):
             logging.warning(
-                "Using multiheads finetuning with a foundation model that is not a Materials Project model, need to provied a path to a pretraining file with --pt_train_file."
+                "Using multiheads finetuning with a foundation model that is not "
+                "a Materials Project model, need to provied a path to a pretraining "
+                "file with --pt_train_file."
             )
             args.multiheads_finetuning = False
+
         if args.multiheads_finetuning:
             assert (
                 args.E0s != "average"
@@ -181,7 +190,9 @@ def run(args) -> None:
             # check that the foundation model has a single head, if not, use the first head
             if not args.force_mh_ft_lr:
                 logging.info(
-                    "Multihead finetuning mode, setting learning rate to 0.0001 and EMA to True. To use a different learning rate, set --force_mh_ft_lr=True."
+                    "Multihead finetuning mode, setting learning rate to 0.0001 and "
+                    "EMA to True. To use a different learning rate, "
+                    "set --force_mh_ft_lr=True."
                 )
                 args.lr = 0.0001
                 args.ema = True
@@ -192,7 +203,8 @@ def run(args) -> None:
             if hasattr(model_foundation, "heads"):
                 if len(model_foundation.heads) > 1:
                     logging.warning(
-                        "Mutlihead finetuning with models with more than one head is not supported, using the first head as foundation head."
+                        "Mutlihead finetuning with models with more than one head "
+                        "is not supported, using the first head as foundation head."
                     )
                     model_foundation = remove_pt_head(
                         model_foundation, args.foundation_head
@@ -202,6 +214,7 @@ def run(args) -> None:
     else:
         args.multiheads_finetuning = False
 
+    # If heads are specified, parse them
     if args.heads is not None:
         args.heads = ast.literal_eval(args.heads)
         for _, head_dict in args.heads.items():
@@ -215,6 +228,8 @@ def run(args) -> None:
             head_dict["key_specification"] = head_keyspec
     else:
         args.heads = prepare_default_head(args)
+
+    # If multiheads finetuning is specified, prepare the pt_head
     if args.multiheads_finetuning:
         pt_keyspec = (
             args.heads["pt_head"]["key_specification"]
@@ -620,7 +635,11 @@ def run(args) -> None:
         if head_config.valid_file is None and head_config.collections.valid:
             valid_sets[head_config.head_name] = [
                 data.AtomicData.from_config(
-                    config, z_table=z_table, cutoff=args.r_max, heads=heads
+                    config,
+                    z_table=z_table,
+                    cutoff=args.r_max,
+                    heads=heads,
+                    dtype=dtype,
                 )
                 for config in head_config.collections.valid
             ]
@@ -714,9 +733,6 @@ def run(args) -> None:
         dtype=dtype,
     )
     model.to(device=device, dtype=dtype)
-
-    dtypes = check_module_dtypes(model)
-    logging.info(f"Model dtypes: {dtypes}")
 
     logging.debug(model)
     logging.info(f"Total number of parameters: {tools.count_parameters(model)}")
@@ -908,10 +924,15 @@ def run(args) -> None:
             for name, subset in head_config.collections.tests:
                 test_sets[name] = [
                     data.AtomicData.from_config(
-                        config, z_table=z_table, cutoff=args.r_max, heads=heads
+                        config,
+                        z_table=z_table,
+                        cutoff=args.r_max,
+                        heads=heads,
+                        dtype=dtype,
                     )
                     for config in subset
                 ]
+
         if head_config.test_dir is not None:
             if not args.multi_processed_test:
                 test_files = get_files_with_suffix(head_config.test_dir, "_test.h5")
@@ -937,6 +958,7 @@ def run(args) -> None:
                         head=head_config.head_name,
                         dtype=dtype,
                     )
+
         for test_name, test_set in test_sets.items():
             test_sampler = None
             if args.distributed:
@@ -961,6 +983,7 @@ def run(args) -> None:
                 pin_memory=args.pin_memory,
             )
             test_data_loader[test_name] = test_loader
+
         if stop_first_test:
             break
 

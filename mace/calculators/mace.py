@@ -242,10 +242,10 @@ class MACECalculator(Calculator):
             print(
                 f"Default dtype {default_dtype} does not match model dtype {model_dtype}, converting models to {default_dtype}."
             )
-            if default_dtype == "float64":
-                self.models = [model.double() for model in self.models]
-            elif default_dtype == "float32":
-                self.models = [model.float() for model in self.models]
+            self.models = [
+                model.to(dtype=torch_tools.dtype_dict[default_dtype])
+                for model in self.models
+            ]
 
         self._dtype = torch_tools.dtype_dict[default_dtype]
 

@@ -369,8 +369,8 @@ def test_key_specification_methods(tmp_path, yaml_contents, name, expected_value
 
     mace_params = _mace_params.copy()
     mace_params["valid_fraction"] = 0.1
-    mace_params["checkpoints_dir"] = str(tmp_path)
-    mace_params["model_dir"] = str(tmp_path)
+    mace_params["checkpoints_dir"] = (tmp_path).as_posix()
+    mace_params["model_dir"] = (tmp_path).as_posix()
     mace_params["train_file"] = "fit_multihead_dft.xyz"
     mace_params["E0s"] = "{1:0.0,8:1.0}"
     mace_params["valid_file"] = "duplicated_fit_multihead_dft.xyz"
@@ -386,15 +386,10 @@ def test_key_specification_methods(tmp_path, yaml_contents, name, expected_value
     with open(filename, "w", encoding="utf-8") as file:
         file.write(dict_to_yaml_str(yaml_contents))
     if len(yaml_contents) > 0:
-        mace_params["config"] = str(tmp_path / "config.yaml")
-
-    run_env = os.environ.copy()
-    sys.path.insert(0, str(Path(__file__).parent.parent))
-    run_env["PYTHONPATH"] = ":".join(sys.path)
-    print("DEBUG subprocess PYTHONPATH", run_env["PYTHONPATH"])
+        mace_params["config"] = (tmp_path / "config.yaml").as_posix()
 
     cmd = (
-        str(run_train)
+        run_train
         + " "
         + " ".join(
             [
@@ -436,7 +431,7 @@ def test_multihead_finetuning_does_not_modify_default_keyspec(tmp_path):
             "--name",
             "_MACE_",
             "--train_file",
-            str(tmp_path / "fit_multihead_dft.xyz"),
+            (tmp_path / "fit_multihead_dft.xyz").as_posix(),
             "--foundation_model",
             "small",
             "--device",

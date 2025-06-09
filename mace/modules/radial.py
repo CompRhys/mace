@@ -61,11 +61,9 @@ class BesselBasis(torch.nn.Module):
         # pylint: disable=self-cls-assignment
         self = super().to(*args, **kwargs)
         if not isinstance(self.bessel_weights, torch.nn.Parameter):
-            self.bessel_weights = torch.nn.Parameter(
-                self.bessel_weights.to(*args, **kwargs)
-            )
-        self.r_max = torch.nn.Parameter(self.r_max.to(*args, **kwargs))
-        self.prefactor = torch.nn.Parameter(self.prefactor.to(*args, **kwargs))
+            self.bessel_weights = self.bessel_weights.to(*args, **kwargs)
+        self.r_max = self.r_max.to(*args, **kwargs)
+        self.prefactor = self.prefactor.to(*args, **kwargs)
         return self
 
 
@@ -131,9 +129,7 @@ class GaussianBasis(torch.nn.Module):
         # pylint: disable=self-cls-assignment
         self = super().to(*args, **kwargs)
         if not isinstance(self.gaussian_weights, torch.nn.Parameter):
-            self.gaussian_weights = torch.nn.Parameter(
-                self.gaussian_weights.to(*args, **kwargs)
-            )
+            self.gaussian_weights = self.gaussian_weights.to(*args, **kwargs)
         return self
 
 
@@ -258,9 +254,9 @@ class ZBLBasis(torch.nn.Module):
         self.p = self.p.to(*args, **kwargs)
         self.covalent_radii = self.covalent_radii.to(*args, **kwargs)
         if not isinstance(self.a_exp, torch.nn.Parameter):
-            self.a_exp = torch.nn.Parameter(self.a_exp.to(*args, **kwargs))
+            self.a_exp = self.a_exp.to(*args, **kwargs)
         if not isinstance(self.a_prefactor, torch.nn.Parameter):
-            self.a_prefactor = torch.nn.Parameter(self.a_prefactor.to(*args, **kwargs))
+            self.a_prefactor = self.a_prefactor.to(*args, **kwargs)
         return self
 
 
@@ -330,11 +326,11 @@ class AgnesiTransform(torch.nn.Module):
         self = super().to(*args, **kwargs)
         self.covalent_radii = self.covalent_radii.to(*args, **kwargs)
         if not isinstance(self.q, torch.nn.Parameter):
-            self.q = torch.nn.Parameter(self.q.to(*args, **kwargs))
+            self.q = self.q.to(*args, **kwargs)
         if not isinstance(self.p, torch.nn.Parameter):
-            self.p = torch.nn.Parameter(self.p.to(*args, **kwargs))
+            self.p = self.p.to(*args, **kwargs)
         if not isinstance(self.a, torch.nn.Parameter):
-            self.a = torch.nn.Parameter(self.a.to(*args, **kwargs))
+            self.a = self.a.to(*args, **kwargs)
         return self
 
 
@@ -418,5 +414,5 @@ class SoftTransform(torch.nn.Module):
         self = super().to(*args, **kwargs)
         self.covalent_radii = self.covalent_radii.to(*args, **kwargs)
         if not isinstance(self.alpha, torch.nn.Parameter):
-            self.alpha = torch.nn.Parameter(self.alpha.to(*args, **kwargs))
+            self.alpha = self.alpha.to(*args, **kwargs)
         return self

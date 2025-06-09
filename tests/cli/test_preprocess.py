@@ -60,13 +60,8 @@ def test_preprocess_data(tmp_path, sample_configs):
         "stress_key": "REF_stress",
     }
 
-    run_env = os.environ.copy()
-    sys.path.insert(0, str(Path(__file__).parent.parent))
-    run_env["PYTHONPATH"] = ":".join(sys.path)
-    print("DEBUG subprocess PYTHONPATH", run_env["PYTHONPATH"])
-
     cmd = (
-        str(preprocess_data)
+        preprocess_data
         + " "
         + " ".join(
             [
@@ -170,12 +165,12 @@ def test_preprocess_config(tmp_path, sample_configs):
     ase.io.write(tmp_path / "sample.xyz", sample_configs)
 
     preprocess_params = {
-        "train_file": str(tmp_path / "sample.xyz"),
+        "train_file": (tmp_path / "sample.xyz").as_posix(),
         "r_max": 5.0,
         "config_type_weights": "{'Default':1.0}",
         "num_process": 2,
         "valid_fraction": 0.1,
-        "h5_prefix": str(tmp_path / "preprocessed_"),
+        "h5_prefix": (tmp_path / "preprocessed_").as_posix(),
         "compute_statistics": None,
         "seed": 42,
         "energy_key": "REF_energy",
@@ -186,12 +181,7 @@ def test_preprocess_config(tmp_path, sample_configs):
     with open(filename, "w", encoding="utf-8") as file:
         yaml.dump(preprocess_params, file)
 
-    run_env = os.environ.copy()
-    sys.path.insert(0, str(Path(__file__).parent.parent))
-    run_env["PYTHONPATH"] = ":".join(sys.path)
-    print("DEBUG subprocess PYTHONPATH", run_env["PYTHONPATH"])
-
-    cmd = str(preprocess_data) + " " + "--config" + " " + str(filename)
+    cmd = preprocess_data + " " + "--config" + " " + filename.as_posix()
 
     p = subprocess.run(cmd.split(), check=True)
     assert p.returncode == 0

@@ -43,7 +43,9 @@ def compute_stats_target(
         drop_last=False,
     )
 
-    avg_num_neighbors, mean, std = compute_statistics(train_loader, atomic_energies)
+    avg_num_neighbors, mean, std = compute_statistics(
+        train_loader, atomic_energies, dtype=dtype
+    )
     output = [avg_num_neighbors, mean, std]
     return output
 
