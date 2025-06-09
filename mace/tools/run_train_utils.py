@@ -102,6 +102,7 @@ def load_dataset_for_path(
                     z_table=z_table,
                     heads=heads,
                     head=head_config.head_name,
+                    dtype=dtype,
                 )
             except Exception as e:
                 logging.error(f"Error loading sharded HDF5 dataset: {e}")

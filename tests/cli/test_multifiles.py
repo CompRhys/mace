@@ -1,11 +1,7 @@
 import json
 import os
-import shutil
 import subprocess
-import sys
-import tempfile
 import zlib
-from pathlib import Path
 
 import lmdb
 import numpy as np
@@ -15,9 +11,9 @@ import torch
 import yaml
 from ase.atoms import Atoms
 from ase.calculators.singlepoint import SinglePointCalculator
-
 from mace.calculators import MACECalculator
-
+from mace.tools import build_default_arg_parser, dict_to_arg_list
+from mace.cli.run_train import run
 
 preprocess_script = "mace_prepare_data"
 run_train_script = "mace_run_train"
@@ -891,31 +887,29 @@ def test_multihead_finetuning_different_formats(tmp_path):
         "force_mh_ft_lr": True,  # Force using specified learning rate
     }
 
-    cmd = [run_train_script]
-    for k, v in finetuning_params.items():
-        if v is None:
-            cmd.append(f"--{k}")
-        else:
-            cmd.append(f"--{k}={v}")
+    args = build_default_arg_parser().parse_args(dict_to_arg_list(finetuning_params))
+    run(args)
 
-    # Run the process
-    process = subprocess.run(
-        cmd,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
-        check=False,
-    )
+    # cmd = [run_train_script] + dict_to_arg_list(finetuning_params)
 
-    # Print output for debugging
-    print("\n" + "=" * 40 + " STDOUT " + "=" * 40)
-    print(process.stdout.decode())
-    print("\n" + "=" * 40 + " STDERR " + "=" * 40)
-    print(process.stderr.decode())
+    # # Run the process
+    # process = subprocess.run(
+    #     cmd,
+    #     stdout=subprocess.PIPE,
+    #     stderr=subprocess.PIPE,
+    #     check=False,
+    # )
 
-    # Check that process completed successfully
-    assert process.returncode == 0, (
-        f"Finetuning failed with error: {process.stderr.decode()}"
-    )
+    # # Print output for debugging
+    # print("\n" + "=" * 40 + " STDOUT " + "=" * 40)
+    # print(process.stdout.decode())
+    # print("\n" + "=" * 40 + " STDERR " + "=" * 40)
+    # print(process.stderr.decode())
+
+    # # Check that process completed successfully
+    # assert process.returncode == 0, (
+    #     f"Finetuning failed with error: {process.stderr.decode()}"
+    # )
 
     # Check that model was created
     model_path = (model_dir / "multihead_finetuned.model").as_posix()

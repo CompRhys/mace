@@ -14,7 +14,7 @@ from ase.atoms import Atoms
 import numpy.testing as npt
 
 from mace.cli.run_train import run
-from mace import tools
+from mace.tools import build_default_arg_parser, dict_to_arg_list
 
 from mace.calculators import MACECalculator, mace_mp
 
@@ -188,23 +188,7 @@ def test_run_train_direct(tmp_path, fitting_configs):
     mace_params["model_dir"] = (tmp_path).as_posix()
     mace_params["train_file"] = (tmp_path / "fit.xyz").as_posix()
 
-    def dict_to_arg_list(args_dict: dict) -> list[str]:
-        """Converts a dictionary of arguments to a command-line style list."""
-        result = []
-        for key, value in args_dict.items():
-            if isinstance(value, bool):
-                if value:
-                    result.append(f'--{key}')
-                continue
-
-            if value is None:
-                continue
-
-            result.append(f'--{key}')
-            result.append(str(value))
-        return result
-
-    args = tools.build_default_arg_parser().parse_args(dict_to_arg_list(mace_params))
+    args = build_default_arg_parser().parse_args(dict_to_arg_list(mace_params))
     run(args)
 
     calc = MACECalculator(

@@ -81,6 +81,7 @@ dtype_dict = {
     "float32": torch.float32,
     "float64": torch.float64,
     "": torch.get_default_dtype(),
+    None: torch.get_default_dtype(),
 }
 
 
