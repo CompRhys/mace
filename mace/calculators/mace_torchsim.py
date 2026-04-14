@@ -490,9 +490,12 @@ class MaceTorchSimModel(_TSModelInterface):
             "unit_shifts": unit_shifts,
             "shifts": shifts,
         }
+        # TODO: revisit after 0.6.0 torchsim release and update to use has_extras.
         optionals: dict[str, torch.Tensor | None] = {
-            "total_charge": getattr(state, "charge", None),
-            "total_spin": getattr(state, "spin", None),
+            "total_charge": getattr(
+                state, "total_charge", getattr(state, "charge", None)
+            ),
+            "total_spin": getattr(state, "total_spin", getattr(state, "spin", None)),
         }
 
         oeq_compile = self._use_compile and self._enable_oeq
